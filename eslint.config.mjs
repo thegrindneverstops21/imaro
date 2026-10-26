@@ -13,7 +13,10 @@ export default tseslint.config(
   {
     files: ["src/**/*.ts"],
     rules: {
-      "max-lines-per-function": ["error", { max: MAX_FUNCTION_LINES, skipBlankLines: true, skipComments: true }],
+      "max-lines-per-function": [
+        "error",
+        { max: MAX_FUNCTION_LINES, skipBlankLines: true, skipComments: true },
+      ],
       "max-params": ["error", MAX_PARAMS],
       "max-depth": ["error", MAX_NESTING],
       complexity: ["error", MAX_COMPLEXITY],
@@ -21,7 +24,10 @@ export default tseslint.config(
       "no-lonely-if": "error",
       "no-restricted-syntax": [
         "error",
-        { selector: "IfStatement[alternate]", message: "Use guard clauses instead of else." },
+        {
+          selector: "IfStatement[alternate]",
+          message: "Use guard clauses instead of else.",
+        },
       ],
       "no-magic-numbers": "off",
       "@typescript-eslint/no-magic-numbers": [
@@ -36,7 +42,10 @@ export default tseslint.config(
           ignoreTypeIndexes: true,
         },
       ],
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
     },
   },
 );

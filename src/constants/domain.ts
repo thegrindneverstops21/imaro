@@ -21,7 +21,10 @@ export const Environment = {
   Production: "production",
 } as const;
 
-export const RoomStatus = { Active: "active", Maintenance: "maintenance" } as const;
+export const RoomStatus = {
+  Active: "active",
+  Maintenance: "maintenance",
+} as const;
 
 // Postgres daterange bounds: check-in night included, check-out day excluded
 export const DATE_RANGE_BOUNDS = "[)";
