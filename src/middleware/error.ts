@@ -34,6 +34,9 @@ function toFailure(error: unknown): Failure {
       details: error.details,
     };
   }
+  if (typeof error === "object" && error !== null && "code" in error && error.code === "23P01") {
+    return { status: HttpStatus.Conflict, message: "The selected room is no longer available" };
+  }
   return {
     status: HttpStatus.InternalServerError,
     message: ErrorMessage.Unexpected,
