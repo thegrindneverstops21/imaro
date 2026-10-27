@@ -12,6 +12,6 @@ coverage/
 # OS and editor files
 .DS_Store
 Thumbs.db
-.vscode/*
+.vscode
 !.vscode/extensions.json
 !.vscode/settings.json
