@@ -1,0 +1,44 @@
+[
+  {
+    "name": "stillmere-clean-backdrop",
+    "asset": {
+      "mediaId": "MAHYEWi9Hto"
+    }
+  },
+  {
+    "name": "stillmere-home-benefits",
+    "asset": {
+      "mediaId": "MAHYEZYNjk8"
+    }
+  },
+  {
+    "name": "stillmere-room-policy",
+    "asset": {
+      "mediaId": "MAHYEZmHlbM"
+    }
+  },
+  {
+    "name": "stillmere-review-price",
+    "asset": {
+      "mediaId": "MAHYETJotx4"
+    }
+  },
+  {
+    "name": "stillmere-guest-payment",
+    "asset": {
+      "mediaId": "MAHYESJ9mMY"
+    }
+  },
+  {
+    "name": "stillmere-style-guide",
+    "asset": {
+      "mediaId": "MAHYEa8cFTA"
+    }
+  },
+  {
+    "name": "stillmere-bed-icon",
+    "asset": {
+      "mediaId": "MAHYEbjCXLA"
+    }
+  }
+]
