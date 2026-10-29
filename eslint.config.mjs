@@ -7,7 +7,7 @@ const MAX_NESTING = 2;
 const MAX_COMPLEXITY = 8;
 
 export default tseslint.config(
-  { ignores: ["dist", "node_modules"] },
+  { ignores: ["dist", "node_modules", "prototypes/**/*.js", "scripts/**/*.cjs"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
