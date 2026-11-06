@@ -1,9 +1,14 @@
 import type { ReactNode } from "react";
-import { displayBrand, formatDate, formatMoney, balanceLine } from "../../lib/format";
+import {
+  balanceLine,
+  displayBrand,
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  pluralize,
+} from "../../lib/format";
 import type { Booking } from "../../types/api";
 
-const LOCALE = "en-ZA";
-const formatDateTime = (iso: string) => new Date(iso).toLocaleString(LOCALE);
 const readable = (value: string) => value.replaceAll("_", " ");
 
 function Row({ name, value }: { name: string; value: string }) {
@@ -28,7 +33,7 @@ function ReceiptRows({ booking }: { booking: Booking }) {
       />
       <Row
         name="Party"
-        value={`${booking.guests} guests · ${booking.nights} nights`}
+        value={`${pluralize(booking.guests, "guest")} · ${pluralize(booking.nights, "night")}`}
       />
       <Row name="Payment" value={readable(booking.paymentStatus)} />
       <div className="summary-total">
