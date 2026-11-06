@@ -1,6 +1,10 @@
-import { balanceLine, displayBrand, formatDate, formatMoney } from "../../lib/format";
+import { balanceLine, displayBrand, formatDate, formatMoney, pluralize } from "../../lib/format";
 import type { AdminBooking } from "../../types/api";
-import { CLOSED_BOOKING_STATUSES, readable } from "./adminTypes";
+import {
+  CLOSED_BOOKING_STATUSES,
+  MODIFIABLE_BOOKING_STATUSES,
+  readable,
+} from "./adminTypes";
 import { PAGE_SIZE } from "./useReservations";
 
 export type RowActions = {
@@ -36,6 +40,7 @@ function AmountCell({ booking }: { booking: AdminBooking }) {
 function ActionCell({ booking, actions }: RowProps) {
   const { reference, status } = booking;
   const open = !CLOSED_BOOKING_STATUSES.includes(status);
+  const modifiable = MODIFIABLE_BOOKING_STATUSES.includes(status);
   return (
     <td className="table-actions">
       {status === "pending_approval" && (
@@ -43,9 +48,11 @@ function ActionCell({ booking, actions }: RowProps) {
           Approve
         </button>
       )}
-      <button aria-label={`Modify dates for ${reference}`} onClick={() => actions.onModify(booking)}>
-        Modify
-      </button>
+      {modifiable && (
+        <button aria-label={`Modify dates for ${reference}`} onClick={() => actions.onModify(booking)}>
+          Modify
+        </button>
+      )}
       {open && (
         <button aria-label={`Cancel ${reference}`} onClick={() => actions.onCancel(reference)}>
           Cancel
@@ -67,7 +74,7 @@ function ReservationRow({ booking, actions }: RowProps) {
       <td>{displayBrand(booking.branchName)}</td>
       <td>
         {formatDate(booking.checkIn)} — {formatDate(booking.checkOut)}
-        <small>{booking.guests} guests</small>
+        <small>{pluralize(booking.guests, "guest")}</small>
       </td>
       <StatusCell booking={booking} />
       <AmountCell booking={booking} />
