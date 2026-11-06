@@ -1291,6 +1291,14 @@
   .print-only {
     display: block;
   }
+  body,
+  .guest-checkout {
+    background: #fff;
+  }
+  .guest-checkout .status-tag {
+    border: 1px solid currentColor;
+    padding: 2px 8px;
+  }
   .guest-checkout.confirmation-shell,
   .guest-checkout.manage-shell {
     width: 100%;

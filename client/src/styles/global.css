@@ -15,6 +15,7 @@
   --paper: #fffdf9;
   --line: #e6e3db;
   --brass: #b39a72;
+  --focus: #16324f;
   --sage: #eeece6;
   --error: #9d392e;
   --serif: "Cinzel", Georgia, serif;
@@ -79,8 +80,17 @@ button:hover {
 }
 
 :focus-visible {
-  outline: 3px solid var(--brass);
+  outline: 3px solid var(--focus);
   outline-offset: 3px;
+}
+
+/* On dark surfaces the light brass keeps the ring visible. */
+.announcement,
+.notice,
+.hero,
+.imaro-hero,
+.brand-note {
+  --focus: #d5bc8b;
 }
 
 .announcement {
@@ -281,7 +291,7 @@ button:hover {
 
 .eyebrow {
   margin: 0 0 14px;
-  color: #9a8152;
+  color: #7d6633;
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -368,8 +378,9 @@ textarea::placeholder {
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 1px solid var(--brass);
-  border-color: var(--brass);
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-color: var(--focus);
 }
 
 .search-panel .button {
@@ -1769,7 +1780,7 @@ html {
 }
 
 .text-link span {
-  color: #9a8152;
+  color: #7d6633;
   font-size: 15px;
 }
 
