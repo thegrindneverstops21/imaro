@@ -8,7 +8,10 @@ export type BranchEdit = { id: number; name: string; description: string };
 
 const UNPUBLISH_WARNING = "Unpublish this branch? Guests will no longer see it in search.";
 
-export function useBranchActions(reload: () => Promise<void>, writes: Writes) {
+export function useBranchActions(
+  reload: (preferredSlug?: string) => Promise<void>,
+  writes: Writes,
+) {
   const [edit, setEdit] = useState<BranchEdit | null>(null);
 
   const create = (input: BranchInput) =>
@@ -16,7 +19,7 @@ export function useBranchActions(reload: () => Promise<void>, writes: Writes) {
       path: "/admin/branches",
       options: json("POST", toBranchPayload(input)),
       success: "Branch created.",
-      refresh: reload,
+      refresh: () => reload(input.slug),
     });
 
   const publish = (branch: Branch) =>

@@ -7,11 +7,18 @@ export function useAdminBranches() {
   const [selected, setSelected] = useState("");
   const [error, setError] = useState("");
 
-  const reload = useCallback(async () => {
+  const reload = useCallback(async (preferredSlug?: string) => {
     try {
       const data = await request<Branch[]>("/admin/branches");
       setBranches(data);
-      setSelected((current) => current || (data[0]?.id ? String(data[0].id) : ""));
+      setSelected((current) => {
+        const preferred = preferredSlug
+          ? data.find((branch) => branch.slug === preferredSlug)
+          : undefined;
+        return preferred?.id
+          ? String(preferred.id)
+          : current || (data[0]?.id ? String(data[0].id) : "");
+      });
       setError("");
     } catch (cause) {
       setError(message(cause));
