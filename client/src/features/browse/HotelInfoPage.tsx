@@ -12,16 +12,26 @@ import { useBranchInformation } from "./useBranchInfo";
 
 const SECTIONS = Object.keys(SECTION_TITLES) as Section[];
 const NO_INFORMATION = "No hotel information is available yet. Please check again later.";
+const MISSING_LOCATION =
+  "That location isn’t available. Choose one of our current locations to see its information.";
 
 type HeadingProps = {
   section: Section;
   branches: Branch[];
   selected: string;
   loading: boolean;
+  missing: boolean;
   onSelect: (slug: string) => void;
 };
 
-function InformationHeading({ section, branches, selected, loading, onSelect }: HeadingProps) {
+function InformationHeading({
+  section,
+  branches,
+  selected,
+  loading,
+  missing,
+  onSelect,
+}: HeadingProps) {
   return (
     <div className="information-heading">
       <div>
@@ -35,7 +45,11 @@ function InformationHeading({ section, branches, selected, loading, onSelect }: 
           disabled={loading}
           onChange={(event) => onSelect(event.target.value)}
         >
-          {!selected && <option value="">Choose a location</option>}
+          {!selected && (
+            <option value="">
+              {missing ? "Location unavailable" : "Choose a location"}
+            </option>
+          )}
           {branches.map((item) => (
             <option key={item.slug} value={item.slug}>
               {displayBrand(item.name)}
@@ -65,9 +79,21 @@ function InformationNav({ section, query }: NavProps) {
   );
 }
 
+function MissingLocation({ onShowAll }: { onShowAll: () => void }) {
+  return (
+    <div className="empty-state">
+      <h3>Location unavailable</h3>
+      <p>{MISSING_LOCATION}</p>
+      <button type="button" className="button button-outline" onClick={onShowAll}>
+        Show available locations
+      </button>
+    </div>
+  );
+}
+
 export function HotelInfoPage({ section }: { section: Section }) {
   const [params, setParams] = useSearchParams();
-  const { branches, branch, loading, error, reload } = useBranchInformation(
+  const { branches, branch, loading, error, missing, reload } = useBranchInformation(
     params.get("branch") ?? "",
   );
   const query = branch ? `?branch=${encodeURIComponent(branch.slug)}` : "";
@@ -79,6 +105,7 @@ export function HotelInfoPage({ section }: { section: Section }) {
         branches={branches}
         selected={branch?.slug ?? ""}
         loading={loading}
+        missing={missing}
         onSelect={(slug) => setParams({ branch: slug })}
       />
       <InformationNav section={section} query={query} />
@@ -91,7 +118,10 @@ export function HotelInfoPage({ section }: { section: Section }) {
           </button>
         </p>
       )}
-      {!loading && !error && !branch && <p>{NO_INFORMATION}</p>}
+      {!loading && !error && missing && (
+        <MissingLocation onShowAll={() => setParams({})} />
+      )}
+      {!loading && !error && !branch && !missing && <p>{NO_INFORMATION}</p>}
       {branch && (
         <div className="information-layout">
           <div>
