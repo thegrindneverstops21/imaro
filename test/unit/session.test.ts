@@ -1,13 +1,13 @@
 import type { Request } from "express";
 import { describe, expect, it } from "vitest";
-import { createOAuthState, isValidOAuthState } from "../../backend/src/auth/oauthState";
+import { createOAuthState, isValidOAuthState } from "../../.vscode/src/auth/oauthState";
 import {
   decodeSession,
   encodeSession,
   newSession,
   readSession,
   signValue,
-} from "../../backend/src/auth/session";
+} from "../../.vscode/src/auth/session";
 
 const NOW = Date.parse("2026-10-27T10:00:00Z");
 const user = { id: 5, email: "a@test.example", name: "A", role: "guest" };

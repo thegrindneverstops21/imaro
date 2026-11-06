@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { StayMessage } from "../../backend/src/constants/messages";
-import { isRealIsoDate, validateStayDates } from "../../backend/src/domain/rules";
+import { StayMessage } from "../../.vscode/src/constants/messages";
+import { isRealIsoDate, validateStayDates } from "../../.vscode/src/domain/rules";
 
 const TODAY = "2026-10-26";
 

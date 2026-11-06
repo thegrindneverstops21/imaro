@@ -3,7 +3,7 @@ import {
   parameterString,
   signature,
   validNotification,
-} from "../../backend/src/domain/payfast";
+} from "../../.vscode/src/domain/payfast";
 
 describe("PayFast signing", () => {
   it("matches the MD5 known value and PHP form encoding", () => {

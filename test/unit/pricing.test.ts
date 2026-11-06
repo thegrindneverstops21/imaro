@@ -4,7 +4,7 @@ import {
   quoteStay,
   round2,
   vatPortion,
-} from "../../backend/src/domain/pricing";
+} from "../../.vscode/src/domain/pricing";
 
 describe("pricing", () => {
   it("counts nights between two dates", () => {

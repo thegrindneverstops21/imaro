@@ -1,8 +1,8 @@
 import request from "supertest";
 import { afterAll, afterEach, expect, it, vi } from "vitest";
-import { app } from "../../backend/src/app";
-import { pool } from "../../backend/src/db/pool";
-import * as notifications from "../../backend/src/repositories/notificationRepository";
+import { app } from "../../.vscode/src/app";
+import { pool } from "../../.vscode/src/db/pool";
+import * as notifications from "../../.vscode/src/repositories/notificationRepository";
 import { API, createUser, daysFromToday, removeTestBookings } from "../helpers";
 
 afterEach(async () => {

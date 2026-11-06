@@ -8,12 +8,12 @@ import {
   it,
   vi,
 } from "vitest";
-import { app } from "../../backend/src/app";
-import { env } from "../../backend/src/config/env";
-import { pool } from "../../backend/src/db/pool";
-import { signature } from "../../backend/src/domain/payfast";
-import * as gateway from "../../backend/src/services/payfastGateway";
-import * as payments from "../../backend/src/repositories/paymentRepository";
+import { app } from "../../.vscode/src/app";
+import { env } from "../../.vscode/src/config/env";
+import { pool } from "../../.vscode/src/db/pool";
+import { signature } from "../../.vscode/src/domain/payfast";
+import * as gateway from "../../.vscode/src/services/payfastGateway";
+import * as payments from "../../.vscode/src/repositories/paymentRepository";
 import { API, createUser, daysFromToday, removeTestBookings } from "../helpers";
 
 beforeEach(() => {

@@ -1,8 +1,8 @@
 import request from "supertest";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
-import { app } from "../../backend/src/app";
-import { pool } from "../../backend/src/db/pool";
-import { hashToken } from "../../backend/src/utils/secrets";
+import { app } from "../../.vscode/src/app";
+import { pool } from "../../.vscode/src/db/pool";
+import { hashToken } from "../../.vscode/src/utils/secrets";
 import {
   API,
   createBooking,

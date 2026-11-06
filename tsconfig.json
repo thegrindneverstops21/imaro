@@ -10,5 +10,5 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["backend/src", "test", "vitest.config.mts"]
+  "include": [".vscode/src", "test", "vitest.config.mts"]
 }
