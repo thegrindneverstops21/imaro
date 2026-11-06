@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { Icon } from "../../components/Icon";
 import { json, message, request } from "../../lib/api";
 import { setUser, type AppDispatch } from "../../app/store";
+import { safePath, takeSignInNext } from "../../lib/authIntent";
 import type { User } from "../../types/api";
 
 type Session = { token: string; user: User };
@@ -20,6 +21,7 @@ export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
     () => new URLSearchParams(location.search).get("error") ?? "",
   );
   const [busy, setBusy] = useState(false);
+  const nextPath = safePath(new URLSearchParams(location.search).get("next"));
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -32,7 +34,10 @@ export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
       );
       localStorage.setItem("imaro.session", session.token);
       dispatch(setUser(session.user));
-      navigate("/profile", { replace: true });
+      const remembered = takeSignInNext();
+      const requested = safePath(new URLSearchParams(location.search).get("next")) || remembered;
+      // Replace the sign-in page in history, so Back never lands on a stale form.
+      navigate(requested || "/", { replace: true });
     } catch (cause) {
       setError(message(cause));
       setBusy(false);
@@ -48,6 +53,11 @@ export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
           ? "Save the stays you like and keep every reservation in one place."
           : "Sign in to see your bookings and saved stays."}
       </p>
+      {nextPath && (
+        <p className="small-note">
+          You’ll go back to the page you were viewing once you continue.
+        </p>
+      )}
 
       {error && (
         <p className="form-error" role="alert">
