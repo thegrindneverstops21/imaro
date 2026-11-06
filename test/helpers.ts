@@ -1,7 +1,7 @@
-import { MS_PER_DAY, UserRole } from "../.vscode/src/constants/domain";
-import { encodeSession, newSession } from "../.vscode/src/auth/session";
-import { pool } from "../.vscode/src/db/pool";
-import { todayIso } from "../.vscode/src/domain/rules";
+import { MS_PER_DAY, UserRole } from "../backend/src/constants/domain";
+import { encodeSession, newSession } from "../backend/src/auth/session";
+import { pool } from "../backend/src/db/pool";
+import { todayIso } from "../backend/src/domain/rules";
 
 export const API = "/api/v1";
 export const TEST_REF_PREFIX = "TEST-";
