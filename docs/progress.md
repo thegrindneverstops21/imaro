@@ -14,7 +14,7 @@ Status meanings: **Done** = completed with stated evidence; **Partial** = some c
 | Correct guest-facing brand to Imaro                 | Done   | Browser title, navigation, and homepage inspected. Older seed names have a guest-display mapping.                                                                             |
 | Use Hugeicons                                       | Done   | Shared SVG icon component added; browser rendering and build checked.                                                                                                         |
 | Organize React files by feature                     | Done   | Browse, booking, account, and admin folders; shared app setup, components, libraries, styles, and types. Typecheck, lint, and production build passed.                        |
-| Record project preferences, state, and coding rules | Done   | Markdown documents linked from `AGENTS.md`; rules prefer short, simple, readable code.                                                                                        |
+| Record project preferences, state, and coding rules | Done   | Preferences, application state, and coding guidelines recorded in `docs/`; rules prefer short, simple, readable code.                                                                                        |
 | Add progress tracking                               | Done   | This tracker added and linked for future agents.                                                                                                                              |
 | Read hotel design guidelines                        | Done   | `docs/design/HOTEL_DESIGN_GUIDELINES.md` read in full; recorded as an active design reference.                                                                                |
 | Lock font direction                                 | Done   | User selected **Modern Serif**. This records the decision, not installation.                                                                                                  |
@@ -42,7 +42,7 @@ Status meanings: **Done** = completed with stated evidence; **Partial** = some c
 | House rules / stay information                | Partial  | Homepage and Guest Details disclosures read API policies. Review visibility and broader Stay Information content remain.                                                                                                                                                          |
 | Our Hotel, Dining, and Contact                | Pending  | Agreed Our Hotel page will include Dining; Contact will be a separate page. Current Dining anchor is only promotional.                                                                                                                                                            |
 | Profile and Google sign-in                    | Partial  | Basic profile and OAuth wiring exist; verify configured sign-in and agree profile content.                                                                                                                                                                                        |
-| Email/password registration and sign-in       | Deferred | Removed from the 6 November deadline scope; Google OAuth satisfies the stated brief. Revisit only if the lecturer requires passwords.                                                                                                                                             |
+| Email/password registration and sign-in | Done | Sign-in/create-account form and `/auth/login` and `/auth/register` endpoints are implemented alongside optional Google OAuth; API tests passed in the reported audit. |
 | Admin operations                              | Partial  | Reservation, branch, room, and rate screens exist; verify permissions and live operations.                                                                                                                                                                                        |
 | Content CMS                                   | Pending  | Outside the agreed initial 18-page list; not implemented. Revisit only if separately requested.                                                                                                                                                                                   |
 | Favorites and share                           | Partial  | Favorites currently save locations; room labels need alignment. Share behavior needs review.                                                                                                                                                                                      |
@@ -193,3 +193,22 @@ Corrected npm dev/database scripts, backend TypeScript paths, ESLint scope and t
 
 ## 6 November 2026 - frontend verification and PayFast preparation
 See docs/design/sprint-6-review.md for current evidence and remaining acceptance work. Full check passed 214 tests in 26 files, lint and both TypeScript checks; production client build passed. Eight fixture screens checked at four viewport widths without document overflow; account/staff tabs, cancellation error, copy feedback and printed confirmation reviewed. Added payfast:check and docs/payfast-sandbox.md. Sandbox credentials/public callbacks are missing; no live payment performed. Sprint 6 remains open for the documented real integration, accessibility and device checks.
+
+## 6 November 2026 - local room API configuration
+Corrected placeholder VITE_API_URL and HTTPS localhost CLIENT_URL in the ignored local environment. Vite now reads the project-root .env through envDir. PayFast settings preserved. Restart both dev servers to apply. No test suite or database changes.
+
+## 6 November 2026 - admin onboarding investigation
+Confirmed public branch discovery incorrectly depends on priced, available inventory. Published new branches can be absent from guest lists. Also found missing onboarding guidance, old-branch selection after creation, numeric room-type IDs and incomplete editing. See docs/design/admin-flow-investigation.md. Investigation only; no tests or application changes.
+
+## 6 November 2026 - audit follow-up
+Added the static-host SPA fallback and verified the built `dist/client/_redirects` matches its source. Corrected authentication status, documented the current module map/backend layout, and removed dangling agent-file references. Retained `appReducer`: `test/unit/guestDraft.test.ts` imports it. Lint, both type checks and client build passed; the full test suite was not rerun. This build produced 652.65 kB of JavaScript (186.41 kB gzip), triggering the bundle-size warning. Existing integration and device verification gaps remain open.
+
+## 6 November 2026 - guest journey investigation
+Source review identified silent property fallback, consent referencing missing cancellation terms, browser-only guest access recovery, storage-failure handling after hold creation, inconsistent sign-in routing and missing review editing. See docs/design/guest-flow-investigation.md for evidence and priorities. Investigation only; no application changes or tests.
+
+
+## Guest investigation repairs — 6 November 2026
+
+Fixed the high-priority guest findings: requested-property identity is preserved with explicit availability states instead of a silent fallback; consent requires a real cancellation policy; booking tokens survive blocked storage and can be deliberately exported from review, confirmation and manage; password and Google sign-in restore the originating page and a pending save; review reacts to hold expiry. Unavailable rooms keep their detail links.
+
+Evidence: lint, API and client TypeScript checks and 13 focused unit tests pass (new sign-in-path, hold-expiry and storage-failure cases). Client production build result recorded below the run. Not verified: browser rendering, genuine storage failure, live PayFast, email delivery of access details, editing an existing hold and password reset.
