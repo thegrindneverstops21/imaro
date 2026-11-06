@@ -338,7 +338,7 @@ export function BrowsePage({
             Checking rooms for your stay…
           </div>
         ) : null}
-        {!loading && !error && !branches.length && !rooms.length && (
+        {!loading && !error && !active && !branches.length && !rooms.length && (
           <div className="empty-state">
             <h3>
               {favoritesOnly
@@ -354,6 +354,20 @@ export function BrowsePage({
               <Link className="button button-outline" to="/">
                 Explore Imaro
               </Link>
+            )}
+          </div>
+        )}
+        {!loading && !error && active && !rooms.length && (
+          <div className="empty-state availability-notice" role="status">
+            <h3>{displayBrand(active.name)} is not yet bookable.</h3>
+            <p>This published location has no rooms available yet. Check back soon or choose another location.</p>
+            {branches.some((branch) => branch.slug !== active.slug) && (
+              <button
+                className="button button-outline"
+                onClick={() => setSelectedSlug(branches.find((branch) => branch.slug !== active.slug)?.slug ?? "")}
+              >
+                See another location
+              </button>
             )}
           </div>
         )}
