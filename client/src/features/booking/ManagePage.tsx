@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Icon } from "../../components/Icon";
 import type { Booking } from "../../types/api";
 import { BookingLoading } from "./BookingLoading";
+import { BookingAccessDetails } from "./BookingAccessDetails";
 import { BookingReceipt } from "./BookingReceipt";
 import { CopyManageLink } from "./CopyManageLink";
 import { ReviewForm } from "./ReviewForm";
@@ -140,6 +141,10 @@ export function ManagePage() {
             Keep your manage token private. It authorizes access to this
             reservation.
           </p>
+          <BookingAccessDetails
+            reference={view.booking.reference}
+            token={view.token}
+          />
           <ReviewForm
             key={view.booking.reference}
             booking={view.booking}
