@@ -8,7 +8,7 @@ const MAX_COMPLEXITY = 8;
 
 export default tseslint.config(
   // Generated output and the plain-JS prototype/script files are not linted.
-  { ignores: ["dist", "node_modules", "prototypes/**/*.js", "scripts/**/*.cjs"] },
+  { ignores: [".taste-skill/**", "dist", "node_modules", "prototypes/**/*.js", "scripts/**/*.cjs"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
