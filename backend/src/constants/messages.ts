@@ -29,6 +29,7 @@ export const ErrorMessage = {
   EmailAlreadyRegistered:
     "That email already has an account. Sign in instead, or continue with Google.",
   InvalidCredentials: "Email or password is incorrect",
+  InvalidResetToken: "This password reset link is invalid or has expired",
   AdminRequired: "Admin access required",
   GoogleNotConfigured: "Google sign-in is not configured",
   InvalidOAuthState: "Invalid or expired sign-in attempt, please try again",

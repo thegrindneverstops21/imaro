@@ -29,6 +29,9 @@ export const GUEST_FIELD_LIMITS = {
 } as const;
 // Local accounts pick their own password; these limits are enforced by the API, not just the form.
 export const PASSWORD_LIMITS = { min: 8, max: 200 } as const;
+export const PASSWORD_RESET_TOKEN_BYTES = 32;
+export const PASSWORD_RESET_TOKEN_LIMITS = { min: 32, max: 200 } as const;
+export const PASSWORD_RESET_LIFETIME_MS = MS_PER_HOUR;
 export const ADMIN_LIST_LIMIT = 100;
 export const ADMIN_FIELD_LIMITS = {
   slugMax: 100,
