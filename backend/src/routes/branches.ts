@@ -11,6 +11,8 @@ import {
   branchSearchQuery,
   stayQuery,
 } from "../validation/stay";
+import { availabilityNotificationBody } from "../validation/availabilityNotification";
+import * as availabilityNotifications from "../repositories/availabilityNotificationRepository";
 
 export const branchesRouter = Router();
 
@@ -33,6 +35,17 @@ branchesRouter.get("/", async (req, res) => {
 
 branchesRouter.get("/:slug/reviews", async (req, res) => {
   res.json(await listReviews(req.params.slug, pageQuery.parse(req.query)));
+});
+
+branchesRouter.post("/:slug/availability-notifications", async (req, res) => {
+  const { email } = availabilityNotificationBody.parse(req.body);
+  const subscribed = await availabilityNotifications.subscribe(req.params.slug, email);
+  res.status(HttpStatus.Created).json({
+    data: {
+      subscribed,
+      message: "You’ll be notified when this property has rooms available.",
+    },
+  });
 });
 
 branchesRouter.get("/:slug", async (req, res) => {
