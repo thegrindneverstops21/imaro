@@ -5,7 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { Icon } from "../../components/Icon";
 import { bookingHeaders, message, request } from "../../lib/api";
 import { redirectToPayfast } from "./payfast";
-import { displayBrand, formatDate, formatMoney } from "../../lib/format";
+import { displayBrand, formatDate, formatDateTime, formatMoney, pluralize } from "../../lib/format";
 import { paymentPresentation } from "./paymentPresentation";
 import type { Booking } from "../../types/api";
 
@@ -105,7 +105,7 @@ export function ReviewPage() {
             <div className="summary-row">
               <span>Party</span>
               <strong>
-                {booking.guests} guests · {booking.nights} nights
+                {pluralize(booking.guests, "guest")} · {pluralize(booking.nights, "night")}
               </strong>
             </div>
             <div className="summary-total">
@@ -141,7 +141,7 @@ export function ReviewPage() {
           {booking.status === "held" && <p>
             Held until{" "}
             {booking.holdExpiresAt
-              ? new Date(booking.holdExpiresAt).toLocaleString("en-ZA")
+              ? formatDateTime(booking.holdExpiresAt)
               : "the hold expires"}
             .
           </p>}
