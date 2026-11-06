@@ -143,7 +143,11 @@ function BranchTable({ branches, onEdit, onPublish, onUnpublish }: TableProps) {
   );
 }
 
-type Props = { branches: Branch[]; reload: () => Promise<void>; writes: Writes };
+type Props = {
+  branches: Branch[];
+  reload: (preferredSlug?: string) => Promise<void>;
+  writes: Writes;
+};
 
 export function BranchesPanel({ branches, reload, writes }: Props) {
   const actions = useBranchActions(reload, writes);

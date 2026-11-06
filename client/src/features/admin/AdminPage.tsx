@@ -58,11 +58,61 @@ function AdminTabs({ tab, disabled, onSelect }: TabsProps) {
   );
 }
 
+function Readiness({
+  branch,
+  inventory,
+  onSelect,
+}: {
+  branch: Branch | undefined;
+  inventory: ReturnType<typeof useBranchInventory>;
+  onSelect: (tab: Tab) => void;
+}) {
+  if (!branch) return null;
+  const activeRooms = inventory.rooms.filter((room) => room.status === "active").length;
+  const checks = [
+    { label: "Published", ready: branch.isPublished !== false, tab: "branches" as Tab },
+    { label: "Active rooms", ready: activeRooms > 0, tab: "rooms" as Tab },
+    { label: "Nightly rates", ready: inventory.prices.length > 0, tab: "rates" as Tab },
+  ];
+  const ready = checks.every((check) => check.ready);
+
+  return (
+    <section className="admin-readiness" aria-labelledby="readiness-title">
+      <div>
+        <h2 id="readiness-title">Booking readiness</h2>
+        <p>
+          {ready
+            ? "This property has the essentials for guest bookings."
+            : "Complete these steps before directing guests to this property."}
+        </p>
+      </div>
+      <ul>
+        {checks.map((check) => (
+          <li key={check.label}>
+            <span aria-label={check.ready ? "Complete" : "Needs attention"}>
+              {check.ready ? "Complete" : "Needs attention"}
+            </span>{" "}
+            {check.label}
+            {!check.ready && (
+              <button type="button" className="text-button" onClick={() => onSelect(check.tab)}>
+                Fix
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function AdminPage() {
   const [tab, setTab] = useState<Tab>("reservations");
   const writes = useAdminWrites();
   const branches = useAdminBranches();
   const inventory = useBranchInventory(branches.selected);
+  const selectedBranch = branches.branches.find(
+    (branch) => String(branch.id) === branches.selected,
+  );
   const errors = [writes.error, branches.error, inventory.error].filter(Boolean);
   const loadingInventory = inventory.loading && (tab === "rooms" || tab === "rates");
   const common = { branchId: branches.selected, writes };
@@ -85,6 +135,7 @@ export function AdminPage() {
           {writes.notice}
         </p>
       )}
+      <Readiness branch={selectedBranch} inventory={inventory} onSelect={setTab} />
       <AdminTabs
         tab={tab}
         disabled={writes.busy}
