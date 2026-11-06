@@ -21,7 +21,16 @@ The frontend runs at `http://localhost:5173` and reads the API at `http://localh
 
 Restart the API after editing `.env`. `GET /api/v1/health` checks the database connection as well as the server. If it fails with PostgreSQL error `28P01` in the server logs, check the database credentials before investigating frontend requests. Do not rerun `db:setup` to fix authentication; it wipes existing data.
 
-Google sign-in needs `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and a matching `GOOGLE_REDIRECT_URI` in Google Cloud OAuth credentials. Set a unique `SESSION_SECRET` (at least 32 characters) and comma-separated `ADMIN_EMAILS` for administrator access. The initial payment endpoint is simulated; it marks a live hold as paid and confirmed and must not be treated as a real payment provider.
+Google sign-in needs `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and a matching `GOOGLE_REDIRECT_URI` in Google Cloud OAuth credentials. Password sign-in is also available, so Google is not required for the administrator flow.
+
+The seeded local/demo administrator is:
+
+| Field | Value |
+|-------|-------|
+| Email | `admin@imaro.local` |
+| Password | `ImaroAdmin2026!` |
+
+Use these credentials at `http://localhost:5173/login` after running `npm run db:setup`. This account is for local setup and submission review only; change or remove it before deploying to a shared or production environment. Set a unique `SESSION_SECRET` (at least 32 characters) and comma-separated `ADMIN_EMAILS` for administrator access to Google accounts. The initial payment endpoint is simulated; it marks a live hold as paid and confirmed and must not be treated as a real payment provider.
 
 ## Scripts
 
@@ -48,6 +57,8 @@ Google sign-in needs `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and a matching 
 | GET    | `/branches/:slug/availability` | `checkIn, checkOut` (required), `guests, rooms`                        | Room types with `availableRooms`, `roomsNeeded`, `canBook`, `nights`, `totalPrice`, `vatIncluded` |
 | GET    | `/auth/google` | | Returns the Google OAuth authorization URL |
 | GET    | `/auth/google/callback` | `code, state` | Exchanges the Google authorization code and returns a bearer session token |
+| POST   | `/auth/register` | JSON `name, email, password` | Creates a password account and returns a bearer session token |
+| POST   | `/auth/login` | JSON `email, password` | Signs in with a password and returns a bearer session token |
 | POST   | `/bookings` | JSON booking details | Creates a 15-minute room hold and returns the one-time manage token |
 | GET    | `/bookings/:reference` | `x-booking-token` header | Reads a booking using its reference and manage token |
 | POST   | `/bookings/:reference/cancel` | `x-booking-token` header | Cancels and releases a booking hold |
