@@ -1,4 +1,13 @@
 -- Illustrative content: addresses, phone numbers AND photos are placeholders.
+-- Demo administrator for local setup and submission review. Change this password before any shared deployment.
+INSERT INTO users (name, email, password_hash, role)
+VALUES (
+  'Imaro Administrator',
+  'admin@imaro.local',
+  'scrypt:b58cb1c628cb4b32957326f168af9e56:d0b925d6583ad5ed910ead270d75ee124c06ab5f53608c6a237e8b717318695cac74bf721043390624719ffb9ed5168342247a007e0d7322674d6734dc6531e4',
+  'admin'
+);
+
 INSERT INTO branches (slug, name, description, address, city, lat, lng, phone, email, star_rating) 
 VALUES ('polokwane', 'Stillmere Polokwane', 'Our home branch in Limpopo''s capital: a calm base close to the city''s offices, venues and weekend plans.', '12 Landdros Mare Street, Polokwane Central, 0699', 'Polokwane', -23.904500, 29.468900, '+27 15 000 0001', 'polokwane@stillmere.example', 4), 
        ('pretoria', 'Stillmere Pretoria', 'A quiet stay in the capital, close to the Church Street corridor and the city''s business districts.', '88 Church Street, Pretoria Central, 0002', 'Pretoria', -25.747900, 28.229300, '+27 12 000 0002', 'pretoria@stillmere.example', 4), 
