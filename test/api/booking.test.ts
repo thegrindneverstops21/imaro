@@ -1,7 +1,7 @@
 import request from "supertest";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
-import { app } from "../../.vscode/src/app";
-import { pool } from "../../.vscode/src/db/pool";
+import { app } from "../../backend/src/app";
+import { pool } from "../../backend/src/db/pool";
 import { API, createUser, daysFromToday, removeTestBookings } from "../helpers";
 
 const TOKEN_HEADER = "x-booking-token";
@@ -336,20 +336,20 @@ describe("POST /bookings/:reference/payment/simulate", () => {
 
   it("does not exist in production", async () => {
     vi.resetModules();
-    vi.doMock("../../src/config/env", async (importOriginal) => {
+    vi.doMock("../../backend/src/config/env", async (importOriginal) => {
       const actual =
-        await importOriginal<typeof import("../../.vscode/src/config/env")>();
+        await importOriginal<typeof import("../../backend/src/config/env")>();
       return { env: { ...actual.env, NODE_ENV: "production" } };
     });
     const { simulatePayment } =
-      await import("../../.vscode/src/services/bookingService.js");
+      await import("../../backend/src/services/bookingService.js");
     await expect(
       simulatePayment("IM-ANY", { token: "x", userId: null }),
     ).rejects.toMatchObject({
       status: 404,
       message: "Route not found",
     });
-    vi.doUnmock("../../src/config/env");
+    vi.doUnmock("../../backend/src/config/env");
   });
 });
 

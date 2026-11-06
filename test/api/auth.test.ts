@@ -8,11 +8,11 @@ import {
   it,
   vi,
 } from "vitest";
-import { app } from "../../.vscode/src/app";
-import { createOAuthState } from "../../.vscode/src/auth/oauthState";
-import { decodeSession } from "../../.vscode/src/auth/session";
-import { env } from "../../.vscode/src/config/env";
-import { pool } from "../../.vscode/src/db/pool";
+import { app } from "../../backend/src/app";
+import { createOAuthState } from "../../backend/src/auth/oauthState";
+import { decodeSession } from "../../backend/src/auth/session";
+import { env } from "../../backend/src/config/env";
+import { pool } from "../../backend/src/db/pool";
 import { API, createUser, removeTestBookings } from "../helpers";
 
 const CALLBACK = `${API}/auth/google/callback`;
