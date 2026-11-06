@@ -73,7 +73,7 @@ function StaySection({ branch }: { branch: Branch }) {
       <div className="checkout-policies">
         {policies.length ? (
           policies.map((policy) => (
-            <details key={policy.type} open>
+            <details key={`${policy.type}-${policy.title}`} open>
               <summary>{policy.title}</summary>
               <p>{displayBrand(policy.body)}</p>
             </details>
