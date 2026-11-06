@@ -13,7 +13,7 @@ React + TypeScript + Redux Toolkit client with a Node + Express + TypeScript + P
 1. `npm i`
 2. `cp .env.example .env` and replace `YOUR_PASSWORD` in both database URLs with your PostgreSQL password (URL-encode special characters; do not include surrounding spaces).
 3. `createdb imaro` and `createdb imaro_test`
-4. `npm run db:setup` (creates tables and seeds 3 branches, 36 rooms; wipes existing data)
+4. `npm run db:setup` (creates tables and seeds 3 branches, 36 rooms; wipes existing data), or `npm run db:migrate` to add password-reset and availability-signup tables without wiping existing data
 5. Start the API with `npm run dev`
 6. In a second terminal, start the frontend with `npm run dev:client`
 
@@ -32,6 +32,8 @@ The seeded local/demo administrator is:
 
 Use these credentials at `http://localhost:5173/login` after running `npm run db:setup`. This account is for local setup and submission review only; change or remove it before deploying to a shared or production environment. Set a unique `SESSION_SECRET` (at least 32 characters) and comma-separated `ADMIN_EMAILS` for administrator access to Google accounts. The initial payment endpoint is simulated; it marks a live hold as paid and confirmed and must not be treated as a real payment provider.
 
+Password reset is available from the sign-in page. In development and test environments, the reset link opens directly in the browser because no email provider is configured; production requires wiring the reset token to an email delivery service.
+
 ## Scripts
 
 | Script                         | What it does                                                                      |
@@ -44,7 +46,7 @@ Use these credentials at `http://localhost:5173/login` after running `npm run db
 | `npm run typecheck`            | TypeScript, no emit                                                               |
 | `npm test`                     | Unit + API tests; rebuilds `stillmere_test` first (`TEST_DATABASE_URL` overrides) |
 | `npm run check`                | lint + typecheck + test                                                           |
-| `npm run db:setup` / `db:seed` | Schema + seed / seed only                                                         |
+| `npm run db:setup` / `db:seed` / `db:migrate` | Schema + seed / seed only / additive schema changes |
 | `npm run design:build`         | Generate the design-reference PNG/SVG assets                                     |
 
 ## Endpoints
@@ -59,6 +61,9 @@ Use these credentials at `http://localhost:5173/login` after running `npm run db
 | GET    | `/auth/google/callback` | `code, state` | Exchanges the Google authorization code and returns a bearer session token |
 | POST   | `/auth/register` | JSON `name, email, password` | Creates a password account and returns a bearer session token |
 | POST   | `/auth/login` | JSON `email, password` | Signs in with a password and returns a bearer session token |
+| POST   | `/auth/password-reset/request` | JSON `email` | Starts a password reset; development returns a reset token for local use |
+| POST   | `/auth/password-reset/complete` | JSON `token, password` | Sets a new password using a valid, single-use token |
+| POST   | `/branches/:slug/availability-notifications` | JSON `email` | Saves an email for availability updates for a published property |
 | POST   | `/bookings` | JSON booking details | Creates a 15-minute room hold and returns the one-time manage token |
 | GET    | `/bookings/:reference` | `x-booking-token` header | Reads a booking using its reference and manage token |
 | POST   | `/bookings/:reference/cancel` | `x-booking-token` header | Cancels and releases a booking hold |
