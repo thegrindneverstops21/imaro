@@ -168,6 +168,14 @@ Known limits: room type is still entered by ID because the API has no room-type 
 
 Remaining: browser verification of /hotel, /stay-information, /contact and the account tabs at 320/390/768/1440px; signed-in empty and error states; Dining stays a placeholder because the API has no dining content.
 
+## Sprint 6 — frontend release check
+
+Verified in headless Chromium against real Postgres: 12 routes at 320/390/768/1440px on the dev server and the production build (no overflow, unique titles, unknown-route page); axe-core WCAG 2 A/AA 0 violations; focus ring ≥3:1 on all tab stops; reduced motion; guest journey through held confirmation, manage, cancel and token recovery (empty submit blocked, double submit creates one booking); print emulation and PDF; 25/25 staff-workspace checks; 214/214 tests; tsc, eslint, build clean.
+
+Fixed: three misnamed admin files that blanked the app, duplicate policy keys, focus-ring and eyebrow contrast, singular/plural labels, hold-time format and zone, Modify offered on held reservations, print background and status tag.
+
+Open (evidence needed outside this environment): PayFast sandbox redirect/ITN (needs credentials and a public notify URL); Google OAuth; native printer and real-device touch/screen-reader pass; Lighthouse LCP/CLS on the deployed site; Dining content; room-type list endpoint.
+
 ## Frontend checkpoint — 5 November 2026
 
 The governing brief remains `docs/design/HOTEL_DESIGN_GUIDELINES.md`; retain Imaro, Cinzel, Source Sans 3 and Hugeicons. Backend polish remains deferred.
@@ -179,3 +187,6 @@ The governing brief remains `docs/design/HOTEL_DESIGN_GUIDELINES.md`; retain Ima
 
 Prior full validation passed 200 tests across 22 files, lint and both TypeScript checks. This checkpoint does not claim all sprint acceptance criteria are met. Continue in bounded slices with targeted checks and a Markdown checkpoint; avoid repeating full audits without a new failure or relevant change.
 Closeout verification: lint, client TypeScript and production build passed on 5 November 2026. Vite required an approved retry outside the sandbox after a child-process EPERM. The synthetic preview page was removed from client/ and retained only in ignored .taste-skill/. No full test-suite rerun in this documentation/cleanup pass; the 200-test result above is from the preceding implementation run.
+
+## 6 November 2026 - startup path repair
+Corrected npm dev/database scripts, backend TypeScript paths, ESLint scope and test imports to use backend/src after the directory move. Existing frontend edits were preserved; staff filenames already match imports in this checkout. Backend and client TypeScript checks passed. npm run dev started successfully on temporary port 4017. Database migrations and the database-resetting test suite were not run.
