@@ -24,6 +24,7 @@ import { AdminPage } from "../features/admin/AdminPage";
 import { StaffGate } from "../features/admin/StaffGate";
 import { ProfilePage } from "../features/account/ProfilePage";
 import { SignInPage } from "../features/account/SignInPage";
+import { PasswordResetPage } from "../features/account/PasswordResetPage";
 import { SAVED_STAYS } from "../lib/labels";
 import { rememberSignInNext, signInLink, takeSignInNext } from "../lib/authIntent";
 
@@ -237,6 +238,7 @@ export function App() {
             path="/login"
             element={<SignInPage onGoogle={() => void signIn()} />}
           />
+          <Route path="/reset-password" element={<PasswordResetPage />} />
                     <Route
             path="/admin"
             element={
