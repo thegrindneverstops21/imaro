@@ -71,6 +71,12 @@ describe("admin branch, room, and price management", () => {
     expect(created.status).toBe(201);
     expect(created.body.data).toMatchObject({ slug, isPublished: true });
 
+    const publicLocations = await request(app).get(`${API}/branches`);
+    expect(publicLocations.status).toBe(200);
+    expect(publicLocations.body.data).toEqual(
+      expect.arrayContaining([expect.objectContaining({ slug, fromPrice: null })]),
+    );
+
     await request(app).patch(`${API}/admin/branches/${created.body.data.id}`)
       .set("authorization", `Bearer ${admin.token}`)
       .send({ isPublished: false, checkInTime: "16:00", checkOutTime: "11:00" });

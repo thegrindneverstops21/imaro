@@ -61,6 +61,24 @@ describe("GET /auth/google", () => {
   });
 });
 
+describe("POST /auth/login", () => {
+  it("signs in the seeded administrator with the documented password", async () => {
+    const res = await request(app)
+      .post(`${API}/auth/login`)
+      .send({ email: "admin@imaro.local", password: "ImaroAdmin2026!" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.user).toMatchObject({
+      email: "admin@imaro.local",
+      role: "admin",
+    });
+    expect(decodeSession(res.body.data.token)).toMatchObject({
+      email: "admin@imaro.local",
+      role: "admin",
+    });
+  });
+});
+
 describe("GET /auth/google/callback", () => {
   it("signs a new guest in and hands the token to the app in the URL fragment", async () => {
     stubGoogle(profile("new@test.example"));
