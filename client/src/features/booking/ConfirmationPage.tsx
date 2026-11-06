@@ -1,9 +1,11 @@
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../../components/Icon";
 import type { Booking } from "../../types/api";
+import { BookingAccessDetails } from "./BookingAccessDetails";
 import { BookingLoading } from "./BookingLoading";
 import { BookingProgress } from "./BookingProgress";
 import { BookingReceipt } from "./BookingReceipt";
+import { bookingTokenPersisted } from "./bookingAccess";
 import { paymentPresentation } from "./paymentPresentation";
 import { useManagedBooking } from "./useManagedBooking";
 
@@ -14,11 +16,21 @@ const HELD_COPY = {
   body: "Your room hold is awaiting payment. Open your booking to review the latest details.",
 };
 
+const UNSAVED_TOKEN =
+  "This browser could not save your private manage token. Copy your access details below before you close this page.";
+
 const outcomeCopy = (booking: Booking) =>
   booking.status === "held" ? HELD_COPY : paymentPresentation(booking);
 
-function ConfirmationView({ booking }: { booking: Booking }) {
+function ConfirmationView({
+  booking,
+  token,
+}: {
+  booking: Booking;
+  token: string;
+}) {
   const outcome = outcomeCopy(booking);
+  const tokenUnsaved = Boolean(token) && !bookingTokenPersisted(booking.reference);
   return (
     <section className="page-shell narrow confirmation-shell guest-checkout">
       <BookingProgress current={CONFIRMATION_STEP} />
@@ -39,10 +51,18 @@ function ConfirmationView({ booking }: { booking: Booking }) {
             Manage booking
           </Link>
         </div>
+        {tokenUnsaved && (
+          <p className="form-error print-hidden" role="alert">
+            {UNSAVED_TOKEN}
+          </p>
+        )}
         <p className="small-note">
           Keep your reference and private manage token safe. Payment and
           reservation status above reflect the hotel’s current records.
         </p>
+        {token && (
+          <BookingAccessDetails reference={booking.reference} token={token} />
+        )}
       </BookingReceipt>
       <Link to="/" className="text-button print-hidden">
         <Icon name="arrowLeft" /> Browse more stays
@@ -75,7 +95,7 @@ export function ConfirmationPage() {
   const { view, find } = useManagedBooking(reference);
 
   if (view.phase === "ready")
-    return <ConfirmationView booking={view.booking} />;
+    return <ConfirmationView booking={view.booking} token={view.token} />;
   if (view.phase === "failed")
     return (
       <ConfirmationFailed
