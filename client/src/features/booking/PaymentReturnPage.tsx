@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { bookingHeaders, message, request } from "../../lib/api";
 import type { Booking } from "../../types/api";
 import { paymentPresentation } from "./paymentPresentation";
+import { bookingToken } from "./bookingAccess";
 
 export function PaymentReturnPage({ cancelled = false }: { cancelled?: boolean }) {
   const [params] = useSearchParams();
@@ -19,7 +20,7 @@ export function PaymentReturnPage({ cancelled = false }: { cancelled?: boolean }
     async function refresh() {
       try {
         const data = await request<Booking>(`/bookings/${encodeURIComponent(reference)}`, {
-          headers: bookingHeaders(localStorage.getItem(`imaro.booking.${reference}`) ?? ""),
+          headers: bookingHeaders(bookingToken(reference)),
           signal: controller.signal,
         });
         if (controller.signal.aborted) return;
