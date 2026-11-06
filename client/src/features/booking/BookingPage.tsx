@@ -191,7 +191,7 @@ export function BookingPage() {
             >
               <h2 id="checkout-policies-title">Before you continue</h2>
               {branch.policies.map((policy) => (
-                <details key={policy.type} open>
+                <details key={`${policy.type}-${policy.title}`} open>
                   <summary>{policy.title}</summary>
                   <p>{displayBrand(policy.body)}</p>
                 </details>
