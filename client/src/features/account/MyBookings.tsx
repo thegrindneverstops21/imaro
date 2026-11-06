@@ -4,6 +4,7 @@ import {
   displayBrand,
   formatDate,
   formatMoney,
+  pluralize,
 } from "../../lib/format";
 import type { Booking } from "../../types/api";
 import { AccountState } from "./AccountState";
@@ -22,7 +23,7 @@ function BookingCard({ booking }: { booking: Booking }) {
       </div>
       <p>
         {formatDate(booking.checkIn)} — {formatDate(booking.checkOut)} ·{" "}
-        {booking.nights} nights
+        {pluralize(booking.nights, "night")}
       </p>
       <p>Reference {booking.reference}</p>
       <p>
