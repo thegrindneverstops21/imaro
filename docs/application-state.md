@@ -1,5 +1,13 @@
 # Imaro application state
 
+## Admin and discovery update - 6 November 2026
+
+Password sign-in is available for the seeded local/submission administrator (`admin@imaro.local`); Google OAuth is not required for the admin demo path. The credential is seeded in `backend/src/db/seed.sql`, documented in `README.md`, and must be changed or removed before shared deployment.
+
+Published branches now appear in public discovery without room inventory or rates. Dated, room-type, and price-filtered searches still require matching availability. The guest browse page communicates the distinction between a published property that is not yet bookable and a property whose rooms are unavailable for the selected stay.
+
+Current usability assessment: guest browsing and booking states are reasonably clear, and admin onboarding now has a readiness checklist with direct navigation to missing publish, room, or rate steps. Guest browse and hotel-information empty states now provide distinct explanations and recovery links; not-yet-bookable properties expose contact actions and availability notification signup. Password reset is implemented with a local/test reset-link flow; production email delivery remains a deployment task. See the admin and guest investigations for evidence and next steps.
+
 ## Sprint 3 update - 5 November 2026
 
 Guest details, review/payment, payment return and confirmation now use the guest visual system. Drafts persist in memory across room/date navigation. Server amounts are rechecked before payment; terminal states are distinct. Full check: 198 tests passed. Fixture browser checks do not establish live PayFast verification. Manage booking and rendered print output remain pending. See docs/design/sprint-3-review.md.

@@ -1,6 +1,6 @@
 # Imaro progress tracker
 
-Last updated: 3 November 2026.
+Last updated: 6 November 2026.
 
 Use this file for task status and next steps. Use [application state](application-state.md) for implementation details and known limitations, and [preferences](preferences.md) for user decisions. Update all relevant records after each agreed step.
 
@@ -24,6 +24,10 @@ Status meanings: **Done** = completed with stated evidence; **Partial** = some c
 
 | Agree admin page list | Done | Reservations (landing), Branches, Rooms, Prices. Planning approval only; initial 18-page list is now agreed. |
 | Core booking journey screens | Done | Added Room Details, Guest Details, Review & Payment, and Confirmation routes using the existing booking hold and simulated payment API. Client build and lint pass; live browser journey completed with a real hold, simulated payment, server-backed confirmation, Manage Booking lookup, and invalid-token recovery. |
+| Admin password access and discovery fix | Done | Seeded local/submission admin credentials, documented them in README, verified password login and admin session issuance, and made published branches discoverable before rooms/rates are configured. |
+| Admin/guest usability investigations | Done | Updated the admin and guest investigations with current behavior, evidence, remaining friction, and prioritized next steps. |
+| Admin readiness and guest recovery states | Done | Added selected-branch readiness checks with Fix navigation, clearer guest empty states, hotel browse recovery, not-yet-bookable contact actions, and a staff login hint. Typecheck, lint, and targeted guest/admin tests passed. |
+| Password reset and availability notifications | Done | Added single-use password reset tokens, local/test reset-link flow, password visibility toggles, and a published-property availability signup with additive migration support. Auth and branch API tests passed. |
 
 ## Application work remaining
 
