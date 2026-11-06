@@ -1,10 +1,10 @@
 # Guest journey investigation - 6 November 2026
 
-Scope: focused source inspection in imaro-clean. No test suite, browser run, database writes or application edits. Findings describe code paths, not observed production incidents.
+Scope: focused source inspection in imaro-clean, including the current password-admin change. No browser usability session or live payment run was performed. Findings describe code paths and targeted test evidence, not production incidents.
 
 ## High-priority findings
 
-1. Property selection is not dependable. /branches is availability-filtered; BrowsePage selects the first returned branch if the requested slug is absent. useBranchInfo does the same for hotel/contact pages. A saved/deep-linked unavailable property can therefore show a different property instead of explaining why the requested property is unavailable. Fix with a published-property catalogue and explicit selected-property/availability states.
+1. Property selection was not dependable. This is now partly fixed: `/branches` retains published properties for unfiltered discovery, and BrowsePage/useBranchInformation preserve the requested property's identity with explicit missing/not-bookable states. Dated and constrained searches still intentionally filter to bookable matches.
 2. Consent can reference absent terms. BookingPage renders policies only when supplied, but always requires agreement to a cancellation-policy anchor. With no policies the target does not exist; generic policies also do not prove cancellation terms were shown. Require an actual cancellation policy or provide an honest, actionable missing-policy state before taking consent.
 3. Guest reservation recovery is incomplete. BookingPage stores manageToken only in localStorage. Receipt tells guests to keep it safe but does not provide a recovery/export flow. CopyManageLink intentionally excludes the token. A guest on another browser cannot rely on the copied reference link alone. Provide a deliberate secure access delivery/recovery mechanism; do not expose tokens in public links by default.
 4. Browser storage failure can make a successful hold look failed. BookingPage POSTs the hold, then writes the token inside the same try block. If localStorage throws, the error is displayed as a failed submission despite the server hold existing. Handle persistence separately and preserve the successful reference/token in memory with recovery instructions.
@@ -20,6 +20,17 @@ Scope: focused source inspection in imaro-clean. No test suite, browser run, dat
 - Password login has no password-reset route/UI in the inspected auth implementation.
 - Guest draft survives route navigation only, not reload. State this limitation or introduce proportionate session recovery that respects personal-data handling.
 - Contact/dining/property imagery completeness depends on supplied content. Missing content is currently acknowledged; do not replace it with invented information.
+
+## Current user-friendliness assessment
+
+The normal guest path is reasonably clear: browse without an account, choose dates and rooms, enter details, review the hold, pay through the clearly simulated payment path, and manage the reservation with its private token. Edge states are more honest than before, but the experience is not yet complete:
+
+- The login page supports both password and Google sign-in, but does not explain that the documented `admin@imaro.local` account is for staff/submission review only.
+- A published property with no inventory is discoverable and clearly marked not yet bookable; the page now offers phone/email actions when the property has published contact details.
+- A property with no matching availability is distinguishable from an unknown/unpublished property, which preserves user trust.
+- Password reset is now available from sign-in; production email delivery still needs to be connected because local/test environments open the reset link directly.
+
+The admin and guest investigations should be read together: discovery can now show a property before operational readiness, so staff needs a readiness checklist to prevent a guest from reaching a dead-end property.
 
 ## What already works in the source
 
@@ -42,3 +53,14 @@ Code changes address the four high-priority findings plus the login, unavailable
 - Hold expiry: review updates as the hold runs out, disables PayFast, and offers search-again.
 
 Not implemented here: email delivery of access details, a true unpublished-property catalogue endpoint, edits to an existing hold, and password reset. Verification: lint, both TypeScript checks and 13 focused unit tests pass, including new sign-in path, hold-expiry and storage-failure regressions. Browser rendering, real storage failure and live payment were not rechecked.
+
+## Repairs applied after this investigation
+
+- Published-branch discovery now includes branches without rooms or rates; availability filters remain availability filters.
+- The guest browse page distinguishes a published property with no room types from a property with rooms unavailable for the selected stay.
+- Browse and hotel-information empty states now distinguish no locations, no date availability, no selected hotel, and no saved/booked content, with recovery links.
+- The admin login intent now explains that the README password account is the staff path and Google is optional.
+- A password-seeded admin account is documented for local/submission access, so the admin flow does not depend on Google OAuth.
+- Guests can submit an email notification signup when a published property is not yet bookable.
+- Sign-in and password-reset forms include an accessible show/hide password toggle.
+- Targeted authentication and admin API tests cover the seeded admin login and newly created branch discovery.
