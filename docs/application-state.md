@@ -14,20 +14,32 @@ Last updated: 3 November 2026.
 
 ## Current implementation
 
-The application has a React + TypeScript + Redux Toolkit client in `client/` and an Express + TypeScript + PostgreSQL API in `src/`. The client runs on port 5173 and uses `VITE_API_URL`, defaulting to `http://localhost:4000/api/v1`.
+The application has a React + TypeScript + Redux Toolkit client in `client/` and an Express + TypeScript + PostgreSQL API in `backend/src/`. The client runs on port 5173 and uses `VITE_API_URL`, defaulting to `http://localhost:4000/api/v1`.
 
 The frontend contains browse/location selection, room details, guest details, review and simulated payment, server-backed confirmation, reservation lookup, cancellation, Google sign-in/profile, and a role-gated staff console. Staff screens call the existing reservation, branch, room, and price endpoints. Favorites currently save locations in browser storage, even though some UI copy refers to rooms.
 
 The guest design follows the older hotel design documents: photographic hero, date/guest/room controls, room cards, house rules, and editorial hotel sections. The current brand is **Imaro**, not Stillmere. Headings use Cinzel and body text uses Source Sans 3. Interface symbols use a shared Hugeicons wrapper in `client/src/components/Icon.tsx`.
 
-The React client uses feature folders for browse, booking, account, and admin pages. App setup and Redux live in `app/`; shared transport and formatting live in `lib/`; API types live in `types/`; styles live in `styles/`. See `client/README.md` for the file map. Backend code remains in the root `src/`.
+The React client uses feature folders for browse, booking, account, and admin pages. App setup and Redux live in `app/`; shared transport and formatting live in `lib/`; API types live in `types/`; styles live in `styles/`. See `client/README.md` for the file map. Backend code lives in `backend/src/`.
+
+## Module map — 6 November 2026
+
+Paths below are relative to `client/src/features/`.
+
+- `admin/AdminPage.tsx` composes the staff workspace; `StaffGate.tsx` handles session-checking, sign-in and admin-role access states.
+- Admin views live in `ReservationsPanel.tsx`, `BranchesPanel.tsx`, `RoomsPanel.tsx` and `RatesPanel.tsx`, with shared `ReservationTable.tsx` and `RecordEditor.tsx` components. The `useAdminBranches`, `useBranchInventory` and `useReservations` hooks load data; `useAdminWrites` coordinates writes, with reservation, branch, room and rate action hooks handling their respective mutations.
+- `booking/BookingReceipt.tsx` renders receipt details; `booking/useManagedBooking.ts` manages lookup, saved tokens and cancellation state.
+- `account/AccountState.tsx` shares loading, error/retry and empty-state rendering across account lists.
+- `browse/useBranchInfo.ts` exports `useBranchInformation`, which loads branch information and supplies loading, error and retry state to `HotelInfoPage`.
+
+Static deployment: `client/public/_redirects` supplies the SPA fallback for hosts supporting this format, including direct booking and payment-return links. The client build copies it to `dist/client/_redirects`. Other hosts need an equivalent rewrite configured in their own format.
 
 ## API integration
 
 - Browse and room detail: `GET /branches` and `GET /branches/:slug` with stay parameters.
 - Booking hold: `POST /bookings`; the client keeps the returned manage token locally.
 - Reservation lookup, cancellation, and simulated payment use the booking reference and `x-booking-token` header.
-- Authentication uses `/auth/google` and `/auth/me`.
+- Authentication uses `/auth/register`, `/auth/login`, `/auth/google` and `/auth/me`.
 - Staff screens use the existing admin endpoints. Content publishing/CMS is not implemented in these screens.
 
 Older seed records still contain Stillmere names. Guest display text uses `displayBrand` for legacy branch names and policy copy. Identifiers and API payloads remain unchanged. No database reseed or stored-record migration was performed for this branding pass. Staff editing continues to show stored names.
@@ -74,7 +86,7 @@ The targeted booking API suite passed all 30 tests, including insufficient-room 
 
 ### Earlier documentation checkpoint
 
-Account planning update: the user accepted My Profile and Saved Stays and required registration with personal details instead of mandatory Google. Planned account pages are Sign In, Sign Up, My Profile, and Saved Stays. Email/password authentication requires backend and frontend work; existing Google OAuth remains optional and guest checkout remains available. Registration and recovery details need definition. Admin page agreement is recorded above. This is recorded scope, not implemented functionality.
+Account planning update: the user accepted My Profile and Saved Stays and required registration with personal details instead of mandatory Google. Planned account pages are Sign In, Sign Up, My Profile, and Saved Stays. Email/password registration and sign-in are implemented through the sign-in/create-account form and API endpoints alongside optional Google OAuth; guest checkout remains available. API tests passed in the reported audit. Password recovery remains outside this implementation. Admin page agreement is recorded above.
 
 Documentation checkpoint: added `docs/progress.md`, read `docs/design/HOTEL_DESIGN_GUIDELINES.md` in full, and recorded Modern Serif as the user's locked font choice. The exact font asset/source remains to be identified. The UI still uses Cormorant Garamond and Inter; no runtime files were changed in this step. No code checks were rerun for this documentation-only change.
 
@@ -82,7 +94,7 @@ Documentation checkpoint: added `docs/progress.md`, read `docs/design/HOTEL_DESI
 
 Organized the React client by feature, separated booking/manage and account pages into individual files, and moved the shared error helper out of the app component to remove circular page imports. API contracts and page behavior were preserved.
 
-Added `docs/coding-guidelines.md` and made it required reading in `AGENTS.md`: prefer the fewest lines of simple, readable code; avoid complex functions and unnecessary abstractions. The preferences document records this direction.
+Added `docs/coding-guidelines.md`: prefer the fewest lines of simple, readable code; avoid complex functions and unnecessary abstractions. The preferences document records this direction.
 
 Validation: ESLint and the client production build passed after restructuring. Checked homepage rendering and navigation to the extracted manage-reservation page in the browser, then returned to the homepage. The existing browse API error remains; no live booking transaction was verified in this structural pass.
 
@@ -120,7 +132,7 @@ Completed:
 
 Verification: all 162 tests across 13 files pass (25 admin tests). ESLint, backend and client TypeScript checks, backend build, and client production build pass. One initial test expectation incorrectly used Classic instead of the seeded Classic Room; corrected it and reran the full suite. Browser smoke verification could not attach to the in-app webview (timeout); authenticated staff and review rendering remain unverified in the browser. Database tests rebuild only the isolated test database.
 
-Remaining: PayFast sandbox/webhook and balance settlement are not implemented; these fields do not collect money. Full admin pagination/search/detail UI still needs wiring; the current list consumes the canonical endpoint and displays balances. No deployment was performed. The next deployment checkpoint is 4 November, with host/access still to be established. Other brief features remain pending. Password registration is deferred from the deadline scope in favor of OAuth, per the latest direction.
+Remaining: PayFast sandbox/webhook and balance settlement are not implemented; these fields do not collect money. Full admin pagination/search/detail UI still needs wiring; the current list consumes the canonical endpoint and displays balances. No deployment was performed. The next deployment checkpoint is 4 November, with host/access still to be established. Other brief features remain pending. Password registration was deferred at this checkpoint and has since been implemented alongside optional OAuth.
 
 ## Payments and account delivery — 3 November 2026
 
