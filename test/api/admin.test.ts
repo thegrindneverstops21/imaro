@@ -1,7 +1,7 @@
 import request from "supertest";
 import { afterAll, afterEach, describe, expect, it } from "vitest";
-import { app } from "../../src/app";
-import { pool } from "../../src/db/pool";
+import { app } from "../../backend/src/app";
+import { pool } from "../../backend/src/db/pool";
 import {
   API,
   createBooking,

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   cancellationOutcome,
   freeCancellationDeadline,
-} from "../../src/domain/cancellation";
+} from "../../backend/src/domain/cancellation";
 
 const CHECK_IN = "2026-11-10";
 // Free window ends 14:00 SAST (12:00 UTC) two days before check-in.

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { groupBy } from "../../src/domain/collection";
+import { groupBy } from "../../backend/src/domain/collection";
 import {
   hasDates,
   roomsNeeded,
   toRoomTypeView,
-} from "../../src/domain/roomTypes";
-import type { RoomTypeAvailabilityRow, Stay } from "../../src/domain/types";
+} from "../../backend/src/domain/roomTypes";
+import type { RoomTypeAvailabilityRow, Stay } from "../../backend/src/domain/types";
 
 const classic: RoomTypeAvailabilityRow = {
   roomTypeId: 1,

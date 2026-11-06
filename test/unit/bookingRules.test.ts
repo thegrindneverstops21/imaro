@@ -6,7 +6,7 @@ import {
   firstNightCharge,
   holdExpiresAt,
   paymentStatusAfterCancel,
-} from "../../src/domain/bookingRules";
+} from "../../backend/src/domain/bookingRules";
 
 const TODAY = "2026-10-27";
 const live = { status: "confirmed", checkIn: "2026-11-10" };
