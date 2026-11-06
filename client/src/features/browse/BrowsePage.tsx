@@ -2,7 +2,7 @@ import { Icon } from "../../components/Icon";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { displayBrand, formatDate, formatMoney } from "../../lib/format";
+import { displayBrand, formatDate, formatMoney, pluralize } from "../../lib/format";
 import { request, message, json } from "../../lib/api";
 import { localToday, nextDay, validateStay } from "../../lib/staySearch";
 import type { Branch, Stay } from "../../types/api";
@@ -272,8 +272,7 @@ export function BrowsePage({
             <p>
               {active ? `${active.city} · ` : ""}
               {formatDate(stay.checkIn)} — {formatDate(stay.checkOut)} ·{" "}
-              {stay.guests} guests · {stay.rooms} room
-              {stay.rooms > 1 ? "s" : ""}
+              {pluralize(stay.guests, "guest")} · {pluralize(stay.rooms, "room")}
             </p>
           </div>
           {branches.length > 1 && (
