@@ -22,7 +22,7 @@ function CheckingAccess() {
     <section className="page-shell narrow guest-checkout">
       <h1>Staff access</h1>
       <p role="status">Checking your access…</p>
-      <Link className="text-button" to="/login">
+      <Link className="text-button" to="/login?next=%2Fadmin">
         Sign in with a different account
       </Link>
     </section>
@@ -49,7 +49,7 @@ export function StaffGate({ user, children }: Props) {
     <Notice
       title="Staff sign-in required"
       body="Sign in with a staff account to manage reservations and hotel operations."
-      to="/login"
+      to="/login?next=%2Fadmin"
       action="Sign in"
     />
   );
