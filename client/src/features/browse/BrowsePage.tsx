@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { displayBrand, formatDate, formatMoney, pluralize } from "../../lib/format";
 import { request, message, json } from "../../lib/api";
 import { localToday, nextDay, validateStay } from "../../lib/staySearch";
+import { rememberPendingSave, rememberSignInNext, signInLink, takePendingSave } from "../../lib/authIntent";
 import type { Branch, Stay } from "../../types/api";
 import {
   setStay,
@@ -85,7 +86,13 @@ export function BrowsePage({
 
   // Favourites belong to locations, not individual room categories.
   async function saveStay(slug: string) {
-    if (!user) { navigate("/profile"); return; }
+    if (!user) {
+      rememberPendingSave(slug);
+      const here = `${location.pathname}${location.search}${location.hash}`;
+      rememberSignInNext(here);
+      navigate(signInLink(here));
+      return;
+    }
     setSaving(true); setSaveError("");
     try {
       await request(`/me/favourites/${encodeURIComponent(slug)}`, json(favorites.includes(slug) ? "DELETE" : "PUT"));
@@ -94,6 +101,13 @@ export function BrowsePage({
     finally { setSaving(false); }
   }
 
+  // A save started while signed out resumes once the guest is back and signed in.
+  useEffect(() => {
+    if (!user) return;
+    const savedSlug = takePendingSave();
+    if (savedSlug) void saveStay(savedSlug);
+  }, [user]);
+
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -101,29 +115,42 @@ export function BrowsePage({
     setDetail(null);
     const query = new URLSearchParams({ ...stay, guests: String(stay.guests), rooms: String(stay.rooms) });
     async function search() {
+      let data: Branch[];
       try {
-        const data = await request<Branch[]>(`/branches?${query}`, { signal: controller.signal });
-        if (controller.signal.aborted) return;
-        const visible = favoritesOnly ? data.filter((branch) => favorites.includes(branch.slug)) : data;
-        setBranches(visible);
-        const selected = visible.find((branch) => branch.slug === selectedSlug) ?? visible[0];
-        const result = selected ? await request<Branch>(`/branches/${selected.slug}?${query}`, { signal: controller.signal }) : null;
+        data = await request<Branch[]>(`/branches?${query}`, { signal: controller.signal });
+      } catch (cause) {
+        if (!controller.signal.aborted) { setError(message(cause)); setLoading(false); }
+        return;
+      }
+      if (controller.signal.aborted) return;
+      const visible = favoritesOnly ? data.filter((branch) => favorites.includes(branch.slug)) : data;
+      setBranches(visible);
+      // A deep-linked property keeps its identity even when it has no availability.
+      const requested = selectedSlug || linkedSlug;
+      const target = requested || visible[0]?.slug || "";
+      if (!target) { setLoading(false); return; }
+      try {
+        const result = await request<Branch>(`/branches/${encodeURIComponent(target)}?${query}`, { signal: controller.signal });
         if (!controller.signal.aborted) setDetail(result);
       } catch (cause) {
-        if (!controller.signal.aborted) setError(message(cause));
+        if (!controller.signal.aborted)
+          setError(requested ? "That location isn’t available. Choose one of the current locations below." : message(cause));
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
     }
     void search();
     return () => controller.abort();
-  }, [stay, selectedSlug, favoritesOnly, favorites, retry]);
+  }, [stay, selectedSlug, linkedSlug, favoritesOnly, favorites, retry]);
 
   function updateStay(patch: Partial<Stay>) {
     setDraft({ ...draft, ...patch });
     setValidation("");
   }
-  const active = detail ?? branches.find((branch) => branch.slug === selectedSlug) ?? branches[0];
+  // The selected property keeps its own name and rooms even without availability.
+  const requestedSlug = selectedSlug || linkedSlug;
+  const locations = detail && !branches.some((branch) => branch.slug === detail.slug) ? [...branches, detail] : branches;
+  const active = detail ?? (requestedSlug ? locations.find((branch) => branch.slug === requestedSlug) : locations[0]);
   const rooms = [...(detail?.roomTypes ?? [])].sort((a, b) =>
     sort === "price" ? a.pricePerNight - b.pricePerNight : sort === "size" ? b.sizeM2 - a.sizeM2 : 0,
   );
@@ -193,14 +220,14 @@ export function BrowsePage({
               onChange={(event) => setSelectedSlug(event.target.value)}
               aria-label="Choose Imaro location"
             >
-              {branches.length ? (
-                branches.map((branch) => (
+              {locations.length ? (
+                locations.map((branch) => (
                   <option key={branch.slug} value={branch.slug}>
                     {branch.city}
                   </option>
                 ))
               ) : (
-                <option value="">{loading ? "Loading locations…" : "Locations unavailable"}</option>
+                <option value="">{loading ? "Loading locations…" : "No locations available"}</option>
               )}
             </select>
           </label>
@@ -275,9 +302,9 @@ export function BrowsePage({
               {pluralize(stay.guests, "guest")} · {pluralize(stay.rooms, "room")}
             </p>
           </div>
-          {branches.length > 1 && (
+          {locations.length > 1 && (
             <div className="location-tabs" aria-label="Imaro locations">
-              {branches.map((branch) => (
+              {locations.map((branch) => (
                 <button
                   key={branch.slug}
                   className={branch.slug === active?.slug ? "active" : ""}
@@ -311,7 +338,7 @@ export function BrowsePage({
             Checking rooms for your stay…
           </div>
         ) : null}
-        {!loading && !error && !branches.length && (
+        {!loading && !error && !branches.length && !rooms.length && (
           <div className="empty-state">
             <h3>
               {favoritesOnly
@@ -330,7 +357,18 @@ export function BrowsePage({
             )}
           </div>
         )}
-        {!loading && !error && rooms.length > 0 && (
+        {!loading && !error && active && rooms.length > 0 && !rooms.some((room) => room.canBook) && (
+          <div className="empty-state availability-notice" role="status">
+            <h3>No rooms at {displayBrand(active.name)} for these dates.</h3>
+            <p>You can still look through the rooms below, change your dates, or choose another location.</p>
+            {branches.some((branch) => branch.slug !== active.slug) && (
+              <button className="button button-outline" onClick={() => setSelectedSlug(branches.find((branch) => branch.slug !== active.slug)?.slug ?? "")}>
+                See another location
+              </button>
+            )}
+          </div>
+        )}
+        {!loading && !error && active && rooms.length > 0 && (
           <div className="room-grid">
             {(roomsPage ? rooms : rooms.slice(0, 2)).map((room, index) => {
               const photo =
@@ -371,7 +409,7 @@ export function BrowsePage({
                           </small>
                         )}
                       </div>
-                      {room.canBook ? (
+                      <div className="room-card-actions">
                         <button
                           className="text-link"
                           onClick={() =>
@@ -380,11 +418,12 @@ export function BrowsePage({
                         >
                           View this room <Icon name="arrowUpRight" />
                         </button>
-                      ) : (
-                        <span className="unavailable">
-                          Unavailable for this stay
-                        </span>
-                      )}
+                        {!room.canBook && (
+                          <span className="unavailable">
+                            Unavailable for this stay
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {room.amenities?.length > 0 && (
                       <p className="room-amenities">
