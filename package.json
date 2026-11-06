@@ -50,6 +50,7 @@
     "test": "vitest run",
     "check": "npm run lint && npm run typecheck && npm run test",
     "db:setup": "tsx backend/src/db/migrate.ts",
+    "db:migrate": "tsx backend/src/db/migrate.ts migrate",
     "db:seed": "tsx backend/src/db/migrate.ts seed",
     "payfast:check": "node scripts/check-payfast.mjs",
     "design:build": "node scripts/build-refinements.cjs"
