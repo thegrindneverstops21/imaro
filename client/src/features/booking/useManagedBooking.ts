@@ -7,17 +7,12 @@ import {
   request,
 } from "../../lib/api";
 import type { Booking } from "../../types/api";
+import { bookingToken, rememberBookingToken } from "./bookingAccess";
 import { lookupFailureMessage } from "./lookupRecovery";
 
 const CANCEL_PROMPT =
   "Cancel this reservation? The hotel’s cancellation terms will apply.";
 const CANCELLED_NOTICE = "Your reservation has been cancelled.";
-
-export const bookingTokenKey = (reference: string) =>
-  `imaro.booking.${reference}`;
-
-const readSavedToken = (reference: string) =>
-  localStorage.getItem(bookingTokenKey(reference)) ?? "";
 
 export type Lookup = { reference: string; token: string };
 
@@ -45,14 +40,13 @@ export function useManagedBooking(routeReference: string) {
     setView({ phase: "loading" });
     setNotice("");
     setActionError("");
-    const usedToken = token || readSavedToken(reference);
+    const usedToken = token || bookingToken(reference);
     try {
       const booking = await request<Booking>(bookingPath(reference), {
         headers: bookingHeaders(usedToken),
       });
       if (id !== latest.current) return;
-      if (usedToken)
-        localStorage.setItem(bookingTokenKey(reference), usedToken);
+      if (usedToken) rememberBookingToken(reference, usedToken);
       setView({ phase: "ready", booking, token: usedToken });
     } catch (cause) {
       if (id !== latest.current) return;
