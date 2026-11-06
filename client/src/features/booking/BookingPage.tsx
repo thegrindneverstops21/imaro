@@ -8,6 +8,7 @@ import { displayBrand, formatDate, formatMoney } from "../../lib/format";
 import { json, request, message } from "../../lib/api";
 import type { Branch, CreatedBooking } from "../../types/api";
 import { clearGuestDraft, setGuestDraft, type RootState } from "../../app/store";
+import { rememberBookingToken } from "./bookingAccess";
 
 export function BookingPage() {
   const { slug = "", roomType = "" } = useParams();
@@ -56,6 +57,10 @@ export function BookingPage() {
   }, [detailUrl]);
 
   const room = branch?.roomTypes?.find((item) => item.slug === roomType);
+  // Consent is only meaningful when the actual cancellation terms are on the page.
+  const cancellationPolicy = branch?.policies?.find(
+    (policy) => policy.type === "cancellation",
+  );
   const total = room
     ? (room.totalPrice ??
       room.pricePerNight * (room.nights ?? 1) * room.roomsNeeded)
@@ -64,7 +69,8 @@ export function BookingPage() {
   // Creating the booking does NOT pay for it: the server places a 15-minute hold.
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current || !room?.canBook || !terms) return;
+    if (submitting.current || !room?.canBook || !terms || !cancellationPolicy)
+      return;
     submitting.current = true;
     setBusy(true);
     setError("");
@@ -78,10 +84,9 @@ export function BookingPage() {
           ...form,
         }),
       );
-      localStorage.setItem(
-        `imaro.booking.${created.reference}`,
-        created.manageToken,
-      );
+      // Persistence is separate from the hold: a blocked localStorage must not
+      // turn a hold the server accepted into a failed submission.
+      rememberBookingToken(created.reference, created.manageToken);
       dispatch(clearGuestDraft());
       navigate(`/review/${created.reference}`);
     } catch (cause) {
@@ -191,28 +196,41 @@ export function BookingPage() {
             >
               <h2 id="checkout-policies-title">Before you continue</h2>
               {branch.policies.map((policy) => (
-                <details key={`${policy.type}-${policy.title}`} open>
+                <details
+                  key={`${policy.type}-${policy.title}`}
+                  id={policy.type === "cancellation" ? "cancellation-policy" : undefined}
+                  open={policy.type === "cancellation"}
+                >
                   <summary>{policy.title}</summary>
                   <p>{displayBrand(policy.body)}</p>
                 </details>
               ))}
             </section>
           ) : null}
-          <label className="terms-choice">
-            <input
-              type="checkbox"
-              required
-              checked={terms}
-              onChange={(e) => setTerms(e.target.checked)}
-            />
-            <span>
-              I understand this booking uses a temporary room hold and agree to{" "}
-              <a href="#checkout-policies-title">the hotel’s cancellation policy</a>.
-            </span>
-          </label>
+          {cancellationPolicy ? (
+            <label className="terms-choice">
+              <input
+                type="checkbox"
+                required
+                checked={terms}
+                onChange={(e) => setTerms(e.target.checked)}
+              />
+              <span>
+                I understand this booking uses a temporary room hold and agree to{" "}
+                <a href="#cancellation-policy">the hotel’s cancellation policy</a>.
+              </span>
+            </label>
+          ) : (
+            <p className="form-error" role="alert">
+              Cancellation terms aren’t available for this stay, so we can’t
+              record your agreement yet. Please{" "}
+              <Link to={`/contact?branch=${slug}`}>contact the hotel</Link> before
+              booking.
+            </p>
+          )}
           {!room.canBook && <p className="form-error" role="alert">This room is no longer available for your stay. Change room or dates to continue.</p>}
           <p className="checkout-final-total">Stay total · VAT included <strong>{formatMoney(total)}</strong></p>
-          <button className="button button-wide" disabled={busy || !room.canBook}>
+          <button className="button button-wide" disabled={busy || !room.canBook || !cancellationPolicy}>
             {busy ? "Creating your room hold…" : "Continue to review & payment"}
             {!busy && <Icon name="arrowRight" />}
           </button>
