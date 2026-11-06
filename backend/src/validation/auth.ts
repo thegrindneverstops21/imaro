@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { ACCOUNT_LIMITS } from "../constants/account";
-import { GUEST_FIELD_LIMITS, PASSWORD_LIMITS } from "../constants/domain";
+import {
+  GUEST_FIELD_LIMITS,
+  PASSWORD_LIMITS,
+  PASSWORD_RESET_TOKEN_LIMITS,
+} from "../constants/domain";
 
 const email = z
   .string()
@@ -18,4 +22,13 @@ export const registerBody = z.object({
 export const signInBody = z.object({
   email,
   password: z.string().min(1).max(PASSWORD_LIMITS.max),
+});
+
+export const passwordResetRequestBody = z.object({ email });
+export const passwordResetBody = z.object({
+  token: z
+    .string()
+    .min(PASSWORD_RESET_TOKEN_LIMITS.min)
+    .max(PASSWORD_RESET_TOKEN_LIMITS.max),
+  password: z.string().min(PASSWORD_LIMITS.min).max(PASSWORD_LIMITS.max),
 });
