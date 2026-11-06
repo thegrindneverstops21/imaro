@@ -2,7 +2,7 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-DROP TABLE IF EXISTS notifications, favourites, reviews, payments, booking_rooms, bookings, policies, rooms, branch_room_types, room_type_images, room_type_amenities, branch_amenities, amenities, room_types, branch_images, branches, users CASCADE;
+DROP TABLE IF EXISTS availability_notifications, password_reset_tokens, notifications, favourites, reviews, payments, booking_rooms, bookings, policies, rooms, branch_room_types, room_type_images, room_type_amenities, branch_amenities, amenities, room_types, branch_images, branches, users CASCADE;
 
 -- ---------- Users ---------- 
 CREATE TABLE users (
@@ -19,6 +19,14 @@ CREATE TABLE users (
 -- Emails are compared case-insensitively: Bob@x.com and bob@x.com are the same account.
 CREATE UNIQUE INDEX users_email_lower
 ON users (lower(email));
+
+CREATE TABLE password_reset_tokens (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used_at TIMESTAMPTZ
+);
 
 -- ---------- Branches ---------- 
 CREATE TABLE branches (
@@ -41,6 +49,14 @@ CREATE TABLE branches (
 
 CREATE INDEX branches_city
 ON branches (city);
+
+CREATE TABLE availability_notifications (
+  id SERIAL PRIMARY KEY,
+  branch_id INT NOT NULL REFERENCES branches(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (branch_id, email)
+);
 
 CREATE TABLE branch_images (
   id SERIAL PRIMARY KEY,
