@@ -1,7 +1,7 @@
-import { MS_PER_DAY, UserRole } from "../src/constants/domain";
-import { encodeSession, newSession } from "../src/auth/session";
-import { pool } from "../src/db/pool";
-import { todayIso } from "../src/domain/rules";
+import { MS_PER_DAY, UserRole } from "../backend/src/constants/domain";
+import { encodeSession, newSession } from "../backend/src/auth/session";
+import { pool } from "../backend/src/db/pool";
+import { todayIso } from "../backend/src/domain/rules";
 
 export const API = "/api/v1";
 export const TEST_REF_PREFIX = "TEST-";
