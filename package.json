@@ -40,7 +40,7 @@
     "vitest": "^4.1.12"
   },
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch backend/src/server.ts",
     "dev:client": "vite --host 0.0.0.0",
     "build": "tsc -p tsconfig.build.json",
     "build:client": "tsc -p tsconfig.client.json && vite build",
@@ -49,8 +49,8 @@
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
     "check": "npm run lint && npm run typecheck && npm run test",
-    "db:setup": "tsx src/db/migrate.ts",
-    "db:seed": "tsx src/db/migrate.ts seed",
+    "db:setup": "tsx backend/src/db/migrate.ts",
+    "db:seed": "tsx backend/src/db/migrate.ts seed",
     "design:build": "node scripts/build-refinements.cjs"
   }
 }
