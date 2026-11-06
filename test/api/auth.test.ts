@@ -76,6 +76,25 @@ describe("POST /auth/login", () => {
       email: "admin@imaro.local",
       role: "admin",
     });
+
+  });
+
+  it("can request and complete a password reset", async () => {
+    const requested = await request(app)
+      .post(`${API}/auth/password-reset/request`)
+      .send({ email: "admin@imaro.local" });
+    expect(requested.status).toBe(200);
+    expect(requested.body.data.resetToken).toBeTruthy();
+
+    const completed = await request(app)
+      .post(`${API}/auth/password-reset/complete`)
+      .send({ token: requested.body.data.resetToken, password: "NewAdmin2026!" });
+    expect(completed.status).toBe(200);
+
+    const login = await request(app)
+      .post(`${API}/auth/login`)
+      .send({ email: "admin@imaro.local", password: "NewAdmin2026!" });
+    expect(login.status).toBe(200);
   });
 });
 

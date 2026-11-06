@@ -90,6 +90,7 @@ describe("GET /branches/:slug", () => {
       checkInTime: "14:00",
       checkOutTime: "10:00",
     });
+
     expect(data.images.length).toBeGreaterThan(0);
     expect(data.amenities.length).toBeGreaterThan(0);
     expect(data.policies.map((p: { type: string }) => p.type)).toContain(
@@ -98,6 +99,21 @@ describe("GET /branches/:slug", () => {
     expect(
       data.roomTypes.map((t: { availableRooms: number }) => t.availableRooms),
     ).toEqual([6, 4, 2]);
+  });
+
+  describe("POST /branches/:slug/availability-notifications", () => {
+    it("stores an availability notification signup", async () => {
+      const res = await request(app)
+        .post("/api/v1/branches/polokwane/availability-notifications")
+        .send({ email: "notify@test.example" });
+      expect(res.status).toBe(201);
+      expect(res.body.data.message).toContain("notified");
+      const stored = await pool.query(
+        "SELECT email FROM availability_notifications WHERE email = $1",
+        ["notify@test.example"],
+      );
+      expect(stored.rows).toEqual([{ email: "notify@test.example" }]);
+    });
   });
 
   it("returns 404 with the standard error shape for an unknown branch", async () => {
