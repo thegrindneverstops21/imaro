@@ -57,6 +57,10 @@ export function BrowsePage({
   const [retry, setRetry] = useState(0);
   const [sort, setSort] = useState("recommended");
   const [saveError, setSaveError] = useState("");
+  const [notifyEmail, setNotifyEmail] = useState("");
+  const [notifyStatus, setNotifyStatus] = useState("");
+  const [notifyError, setNotifyError] = useState("");
+  const [notifyBusy, setNotifyBusy] = useState(false);
   const bookingArea = useRef<HTMLElement>(null);
   const heroArea = useRef<HTMLElement>(null);
 
@@ -93,12 +97,34 @@ export function BrowsePage({
       navigate(signInLink(here));
       return;
     }
+
     setSaving(true); setSaveError("");
     try {
       await request(`/me/favourites/${encodeURIComponent(slug)}`, json(favorites.includes(slug) ? "DELETE" : "PUT"));
       dispatch(toggleFavorite(slug));
     } catch (cause) { setSaveError(message(cause)); }
     finally { setSaving(false); }
+  }
+
+  async function subscribeToAvailability(slug: string) {
+    if (!notifyEmail.trim()) {
+      setNotifyError("Enter an email address to receive availability updates.");
+      return;
+    }
+    setNotifyBusy(true);
+    setNotifyError("");
+    setNotifyStatus("");
+    try {
+      const result = await request<{ message: string }>(
+        `/branches/${encodeURIComponent(slug)}/availability-notifications`,
+        json("POST", { email: notifyEmail }),
+      );
+      setNotifyStatus(result.message);
+    } catch (cause) {
+      setNotifyError(message(cause));
+    } finally {
+      setNotifyBusy(false);
+    }
   }
 
   // A save started while signed out resumes once the guest is back and signed in.
@@ -343,16 +369,25 @@ export function BrowsePage({
             <h3>
               {favoritesOnly
                 ? "Nothing saved just yet."
-                : "We couldn’t find availability for those dates."}
+                : stay.checkIn && stay.checkOut
+                  ? "No rooms match those dates."
+                  : "No Imaro locations are available yet."}
             </h3>
             <p>
               {favoritesOnly
                 ? "Save an Imaro location and find it here next time."
-                : "Try another set of dates or choose a different Imaro location."}
+                : stay.checkIn && stay.checkOut
+                  ? "Try different dates, fewer guests, or another location."
+                  : "Please check back soon, or contact us if you need help planning your stay."}
             </p>
             {favoritesOnly && (
               <Link className="button button-outline" to="/">
                 Explore Imaro
+              </Link>
+            )}
+            {!favoritesOnly && !stay.checkIn && !stay.checkOut && (
+              <Link className="button button-outline" to="/contact">
+                Contact us
               </Link>
             )}
           </div>
@@ -361,6 +396,19 @@ export function BrowsePage({
           <div className="empty-state availability-notice" role="status">
             <h3>{displayBrand(active.name)} is not yet bookable.</h3>
             <p>This published location has no rooms available yet. Check back soon or choose another location.</p>
+            <form className="availability-signup" onSubmit={(event) => { event.preventDefault(); void subscribeToAvailability(active.slug); }}>
+              <label>
+                Notify me when rooms are available
+                <input type="email" required value={notifyEmail} onChange={(event) => setNotifyEmail(event.target.value)} placeholder="you@example.com" />
+              </label>
+              <button className="button button-outline" disabled={notifyBusy}>
+                {notifyBusy ? "Saving…" : "Notify me"}
+              </button>
+            </form>
+            {notifyStatus && <p className="inline-message" role="status">{notifyStatus}</p>}
+            {notifyError && <p className="form-error" role="alert">{notifyError}</p>}
+            {active.phone && <a className="button button-outline" href={`tel:${active.phone.replace(/[^+\d]/g, "")}`}>Call this hotel</a>}
+            {active.email && <a className="button button-outline" href={`mailto:${active.email}`}>Email this hotel</a>}
             {branches.some((branch) => branch.slug !== active.slug) && (
               <button
                 className="button button-outline"

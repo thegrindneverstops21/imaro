@@ -121,7 +121,15 @@ export function HotelInfoPage({ section }: { section: Section }) {
       {!loading && !error && missing && (
         <MissingLocation onShowAll={() => setParams({})} />
       )}
-      {!loading && !error && !branch && !missing && <p>{NO_INFORMATION}</p>}
+      {!loading && !error && !branch && !missing && (
+        <div className="empty-state">
+          <h3>No hotel information selected</h3>
+          <p>{NO_INFORMATION}</p>
+          <Link className="button button-outline" to="/rooms">
+            Browse locations
+          </Link>
+        </div>
+      )}
       {branch && (
         <div className="information-layout">
           <div>
