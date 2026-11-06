@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authorizationUrl } from "../auth/googleClient";
 import { createOAuthState, isValidOAuthState } from "../auth/oauthState";
 import { env } from "../config/env";
+import { Environment } from "../constants/domain";
 import { LOGIN_FAILURE_PATH, LOGIN_SUCCESS_PATH } from "../constants/domain";
 import { HttpStatus } from "../constants/http";
 import { ErrorMessage } from "../constants/messages";
@@ -13,8 +14,15 @@ import {
   sessionTokenFor,
   signInWithGoogle,
   signInWithPassword,
+  requestPasswordReset,
+  resetPassword,
 } from "../services/authService";
-import { registerBody, signInBody } from "../validation/auth";
+import {
+  passwordResetBody,
+  passwordResetRequestBody,
+  registerBody,
+  signInBody,
+} from "../validation/auth";
 import { oauthCallbackQuery } from "../validation/booking";
 
 export const authRouter = Router();
@@ -35,6 +43,22 @@ authRouter.post("/login", async (req, res) => {
   const input = signInBody.parse(req.body);
   const user = await signInWithPassword(input.email, input.password);
   res.json({ data: { token: sessionTokenFor(user), user } });
+});
+
+authRouter.post("/password-reset/request", async (req, res) => {
+  const { email } = passwordResetRequestBody.parse(req.body);
+  const token = await requestPasswordReset(email);
+  const data: { message: string; resetToken?: string } = {
+    message: "If an account exists, password reset instructions are ready.",
+  };
+  if (token && env.NODE_ENV !== Environment.Production) data.resetToken = token;
+  res.json({ data });
+});
+
+authRouter.post("/password-reset/complete", async (req, res) => {
+  const input = passwordResetBody.parse(req.body);
+  await resetPassword(input.token, input.password);
+  res.json({ data: { message: "Password updated. You can now sign in." } });
 });
 
 // Step 1: the app asks for the Google sign-in address and sends the browser there.
