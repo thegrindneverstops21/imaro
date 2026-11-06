@@ -60,7 +60,7 @@ export interface BranchSummaryRow {
   lng: number;
   imageUrl: string | null;
   imageAlt: string | null;
-  fromPrice: number;
+  fromPrice: number | null;
 }
 
 export interface RoomTypeAvailabilityRow {
