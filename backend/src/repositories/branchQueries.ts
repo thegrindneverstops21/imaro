@@ -52,8 +52,14 @@ export const SEARCH_BRANCHES = `
          (SELECT alt FROM branch_images bi WHERE bi.branch_id = b.id ORDER BY sort_order LIMIT 1) AS "imageAlt",
          MIN(f."pricePerNight") AS "fromPrice"
   FROM branches b
-  JOIN fit f ON f."branchId" = b.id AND f."availableRooms" >= f."roomsNeeded"
-  WHERE b.is_published AND ($8::text IS NULL OR b.city ILIKE $8)
+  LEFT JOIN fit f ON f."branchId" = b.id AND f."availableRooms" >= f."roomsNeeded"
+  WHERE b.is_published
+    AND ($8::text IS NULL OR b.city ILIKE $8)
+    AND (
+      ($1::date IS NULL AND $2::date IS NULL AND $5::text IS NULL
+       AND $6::numeric IS NULL AND $7::numeric IS NULL)
+      OR f."branchId" IS NOT NULL
+    )
   GROUP BY b.id
   ORDER BY b.name`;
 
