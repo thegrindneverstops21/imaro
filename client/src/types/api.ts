@@ -42,7 +42,7 @@ export type Branch = {
   checkOutTime?: string;
   imageUrl?: string | null;
   imageAlt?: string | null;
-  fromPrice?: number;
+  fromPrice?: number | null;
   isPublished?: boolean;
   images?: { url: string; alt: string }[];
   amenities?: { name: string }[];
