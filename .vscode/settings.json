@@ -1,0 +1,6 @@
+{
+  "dotenv.enableAutocloaking": false,
+  "[sql]": {
+    "editor.formatOnSave": false
+  }
+}
