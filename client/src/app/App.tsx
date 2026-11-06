@@ -25,6 +25,7 @@ import { StaffGate } from "../features/admin/StaffGate";
 import { ProfilePage } from "../features/account/ProfilePage";
 import { SignInPage } from "../features/account/SignInPage";
 import { SAVED_STAYS } from "../lib/labels";
+import { rememberSignInNext, signInLink, takeSignInNext } from "../lib/authIntent";
 
 export function App() {
   const dispatch = useDispatch<AppDispatch>();
@@ -38,6 +39,11 @@ export function App() {
   const menuButton = useRef<HTMLButtonElement>(null);
   const checkout = /^\/(stay|review|confirmation|payment|manage|booking|admin)(\/|$)/.test(location.pathname);
   const overHero = location.pathname === "/" && heroVisible;
+  // Signing in from any page returns the guest to the page they were on.
+  const signInTarget =
+    location.pathname === "/login"
+      ? `${location.pathname}${location.search}`
+      : signInLink(`${location.pathname}${location.search}${location.hash}`);
   useEffect(() => {
     const page = location.pathname.split("/")[1];
     const names: Record<string, string> = { rooms: "Rooms & suites", room: "Room details", hotel: "Our hotel", contact: "Contact", "stay-information": "Stay information", stay: "Guest details", review: "Review & payment", confirmation: "Reservation status", manage: "Manage booking", booking: "Your booking", payment: "Payment status", profile: "Your account", favorites: SAVED_STAYS, login: "Sign in", admin: "Hotel operations" };
@@ -86,7 +92,7 @@ export function App() {
     void request<User>("/me")
       .then((profile) => {
         dispatch(setUser(profile));
-        navigate("/profile", { replace: true });
+        navigate(takeSignInNext() || "/", { replace: true });
       })
       .catch(() => {
         localStorage.removeItem("imaro.session");
@@ -111,6 +117,8 @@ export function App() {
 
   // Sign-in is a full page redirect to Google; the API builds the URL for us.
   async function signIn() {
+    const next = new URLSearchParams(location.search).get("next");
+    if (next) rememberSignInNext(next);
     try {
       const result = await request<{ authorizationUrl: string }>(
         "/auth/google",
@@ -147,7 +155,7 @@ export function App() {
           </Link>
           {user?.role === "admin" && <Link className="mobile-account" to="/admin" onClick={() => setNavOpen(false)}>Staff console</Link>}
           {user && <button className="mobile-sign-out text-button" onClick={() => { signOut(); setNavOpen(false); }}>Sign out</button>}
-          {user ? <Link className="mobile-account" to="/profile" onClick={() => setNavOpen(false)}>My profile</Link> : <Link className="mobile-account" to="/login" onClick={() => setNavOpen(false)}>Sign in</Link>}
+          {user ? <Link className="mobile-account" to="/profile" onClick={() => setNavOpen(false)}>My profile</Link> : <Link className="mobile-account" to={signInTarget} onClick={() => setNavOpen(false)}>Sign in</Link>}
         </nav>
         <div className="account-actions">
           {user && <NotificationBell key={user.id} />}
@@ -161,7 +169,7 @@ export function App() {
               </button>
             </>
           ) : (
-            <Link className="button button-quiet desktop-sign-in" to="/login">
+            <Link className="button button-quiet desktop-sign-in" to={signInTarget}>
               Sign in
             </Link>
           )}
@@ -201,7 +209,7 @@ export function App() {
           <Route path="/hotel" element={<HotelInfoPage section="hotel" />} />
           <Route path="/stay-information" element={<HotelInfoPage section="stay-information" />} />
           <Route path="/contact" element={<HotelInfoPage section="contact" />} />
-          <Route path="/favorites" element={<ProfilePage user={user} saved onSignIn={() => navigate("/login")} />} />
+          <Route path="/favorites" element={<ProfilePage user={user} saved onSignIn={() => navigate("/login?next=%2Ffavorites")} />} />
           <Route path="/payment/return" element={<PaymentReturnPage />} />
           <Route path="/payment/cancelled" element={<PaymentReturnPage cancelled />} />
           <Route path="/room/:slug/:roomType" element={<RoomDetailsPage />} />
@@ -215,7 +223,7 @@ export function App() {
           <Route path="/manage" element={<ManagePage />} />
           <Route
             path="/profile"
-            element={<ProfilePage user={user} onSignIn={() => void signIn()} />}
+            element={<ProfilePage user={user} onSignIn={() => navigate("/login?next=%2Fprofile")} />}
           />
           <Route
             path="/auth/callback"
