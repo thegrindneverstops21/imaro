@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { env } from "../../.vscode/src/config/env";
-import { verifyWithPayfast } from "../../.vscode/src/services/payfastGateway";
+import { env } from "../../backend/src/config/env";
+import { verifyWithPayfast } from "../../backend/src/services/payfastGateway";
 
 afterEach(() => vi.unstubAllGlobals());
 

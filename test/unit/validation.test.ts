@@ -3,7 +3,7 @@ import {
   availabilityQuery,
   branchSearchQuery,
   stayQuery,
-} from "../../.vscode/src/validation/stay";
+} from "../../backend/src/validation/stay";
 import { daysFromToday } from "../helpers";
 
 describe("query validation", () => {
