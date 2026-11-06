@@ -7,7 +7,16 @@ import { bookingHeaders, message, request } from "../../lib/api";
 import { redirectToPayfast } from "./payfast";
 import { displayBrand, formatDate, formatDateTime, formatMoney, pluralize } from "../../lib/format";
 import { paymentPresentation } from "./paymentPresentation";
+import { BookingAccessDetails } from "./BookingAccessDetails";
+import { bookingToken, bookingTokenPersisted } from "./bookingAccess";
+import { holdState } from "./holdExpiry";
 import type { Booking } from "../../types/api";
+
+const EXPIRED_TITLE = "Your room hold has expired.";
+const EXPIRED_BODY =
+  "The rooms may no longer be held. Search for availability again to start a new hold before paying.";
+const UNSAVED_TOKEN =
+  "This browser could not save your private manage token. Copy your access details below before you leave or close this page.";
 
 export function ReviewPage() {
   const { reference = "" } = useParams();
@@ -16,7 +25,8 @@ export function ReviewPage() {
   const [error, setError] = useState("");
   const submitting = useRef(false);
   const [retry, setRetry] = useState(0);
-  const token = localStorage.getItem(`imaro.booking.${reference}`) ?? "";
+  const [now, setNow] = useState(() => Date.now());
+  const token = bookingToken(reference);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -29,8 +39,19 @@ export function ReviewPage() {
     return () => controller.abort();
   }, [reference, token, retry]);
 
+  // A hold can run out while this page is open; show that state without waiting for another request to fail.
+  useEffect(() => {
+    if (booking?.status !== "held") return;
+    const timer = window.setInterval(() => setNow(Date.now()), 15_000);
+    return () => window.clearInterval(timer);
+  }, [booking?.status]);
+
+  const hold = booking?.status === "held" ? holdState(booking.holdExpiresAt, now) : "none";
+  const expired = hold === "expired";
+  const tokenUnsaved = Boolean(token) && !bookingTokenPersisted(reference);
+
   async function pay() {
-    if (submitting.current || !booking || booking.status !== "held" || booking.paymentStatus !== "unpaid") return;
+    if (submitting.current || !booking || booking.status !== "held" || booking.paymentStatus !== "unpaid" || expired) return;
     submitting.current = true;
     setBusy(true);
     setError("");
@@ -81,6 +102,13 @@ export function ReviewPage() {
               {error}
             </p>
           )}
+          {expired && (
+            <div className="form-error" role="alert">
+              <strong>{EXPIRED_TITLE}</strong>
+              <p>{EXPIRED_BODY}</p>
+              <Link className="button" to="/rooms">Search rooms again</Link>
+            </div>
+          )}
           <div className="review-panel">
             <h2>{displayBrand(booking.branch.name)}</h2>
             <p>
@@ -120,14 +148,20 @@ export function ReviewPage() {
               reservation will await hotel approval after payment is verified.
             </p>
           </div>
-          <button
-            className="button button-wide"
-            disabled={busy || booking.status !== "held" || booking.paymentStatus !== "unpaid"}
-            onClick={() => void pay()}
-          >
-            {busy ? "Opening PayFast…" : "Continue to PayFast"}
-            {!busy && <Icon name="arrowRight" />}
-          </button>
+          {expired ? (
+            <Link className="button button-wide" to="/rooms">
+              Search rooms again
+            </Link>
+          ) : (
+            <button
+              className="button button-wide"
+              disabled={busy || booking.status !== "held" || booking.paymentStatus !== "unpaid"}
+              onClick={() => void pay()}
+            >
+              {busy ? "Opening PayFast…" : "Continue to PayFast"}
+              {!busy && <Icon name="arrowRight" />}
+            </button>
+          )}
           {booking.status !== "held" && <p role="status">{paymentPresentation(booking).title} <Link to={`/booking/${encodeURIComponent(reference)}`}>View booking details</Link></p>}
           <Link className="text-button" to="/rooms">
             Back to rooms
@@ -139,11 +173,11 @@ export function ReviewPage() {
           <p>Booking reference</p>
           <h2>{booking.reference}</h2>
           {booking.status === "held" && <p>
-            Held until{" "}
-            {booking.holdExpiresAt
-              ? formatDateTime(booking.holdExpiresAt)
-              : "the hold expires"}
-            .
+            {expired
+              ? "This hold has expired."
+              : <>Held until {booking.holdExpiresAt
+                ? formatDateTime(booking.holdExpiresAt)
+                : "the hold expires"}.{hold === "expiring" ? " Only a few minutes remain." : ""}</>}
           </p>}
           <div className="summary-total">
             <span>Balance due</span>
@@ -159,6 +193,12 @@ export function ReviewPage() {
           </details>
         </aside>
       </div>
+      {tokenUnsaved && (
+        <p className="form-error print-hidden" role="alert">
+          {UNSAVED_TOKEN}
+        </p>
+      )}
+      {token && <BookingAccessDetails reference={booking.reference} token={token} />}
     </section>
   );
 }
