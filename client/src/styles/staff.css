@@ -1,6 +1,20 @@
 .admin-shell { width: 94%; max-width: 1600px; padding-block: 40px 72px; }
 .admin-shell h1 { font: 600 32px/1.2 "Source Sans 3", sans-serif; }
 .admin-heading p, .admin-panel > p { font-size: 16px; }
+.admin-readiness {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: start;
+  margin-block: 24px;
+  padding: 20px 24px;
+  background: #e9e8e3;
+}
+.admin-readiness h2 { margin: 0 0 4px; font-size: 20px; }
+.admin-readiness p { margin: 0; }
+.admin-readiness ul { display: flex; gap: 16px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.admin-readiness li { white-space: nowrap; }
+.admin-readiness li span { font-weight: 600; }
 .admin-shell label { font-size: 14px; letter-spacing: 0; text-transform: none; color: var(--ink); }
 .admin-shell input, .admin-shell select, .admin-shell textarea { font-size: 16px; min-height: 44px; }
 .admin-shell .button { background: var(--ink); border-color: var(--ink); font-size: 16px; text-transform: none; letter-spacing: 0; min-height: 44px; }
@@ -31,6 +45,7 @@
 @media (max-width: 700px) {
   .admin-shell { width: 90%; }
   .admin-heading { align-items: stretch; flex-direction: column; }
+  .admin-readiness { flex-direction: column; }
   .admin-shell h1 { font-size: 28px; }
   .admin-tabs { gap: 20px; }
   .admin-filters, .admin-inline-form { flex-direction: column; align-items: stretch; padding: 20px; }

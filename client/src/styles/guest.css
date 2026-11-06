@@ -387,6 +387,19 @@
 .guest-browse .empty-state h3 {
   font: 400 28px/1.3 var(--serif);
 }
+
+.availability-signup {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.availability-signup label {
+  text-align: left;
+}
 .guest-footer {
   padding: 64px 5%;
   gap: 48px;
