@@ -35,4 +35,7 @@ export const BOOKING_STATUSES = [
 
 export const CLOSED_BOOKING_STATUSES = ["cancelled", "expired", "completed"];
 
+// The API rejects date changes on any other status (a held room is still unpaid).
+export const MODIFIABLE_BOOKING_STATUSES = ["pending_approval", "confirmed"];
+
 export const readable = (value: string) => value.replaceAll("_", " ");
