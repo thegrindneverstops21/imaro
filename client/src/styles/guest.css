@@ -1352,3 +1352,9 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media print {
+  html, body, #root, main { background: #fff !important; }
+  .guest-checkout .receipt-heading { display: flex; flex-direction: row; align-items: flex-start; }
+  .guest-checkout .receipt-heading .status-tag { flex: 0 0 auto; width: auto; }
+}
