@@ -99,3 +99,6 @@ Done when: a guest can navigate from discovery through the verified booking stat
 ## Review rhythm
 
 For each sprint: implement one coherent slice, inspect the rendered result, exercise its interactions, report changes and limits, and update progress. Do not treat compilation as proof of a working booking journey. Review Sprint 1 before rolling its visual system across every screen.
+
+## Latest verification - 6 November 2026
+See sprint-6-review.md: 214 tests passed; added four-width fixture checks, account/staff tab checks and printed-confirmation review. These supersede earlier pending-print and loaded-hotel checks, but do not close the remaining real integration/device/accessibility gates. PayFast sandbox preparation is documented in ../payfast-sandbox.md.

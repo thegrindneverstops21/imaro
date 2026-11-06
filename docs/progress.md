@@ -190,3 +190,6 @@ Closeout verification: lint, client TypeScript and production build passed on 5 
 
 ## 6 November 2026 - startup path repair
 Corrected npm dev/database scripts, backend TypeScript paths, ESLint scope and test imports to use backend/src after the directory move. Existing frontend edits were preserved; staff filenames already match imports in this checkout. Backend and client TypeScript checks passed. npm run dev started successfully on temporary port 4017. Database migrations and the database-resetting test suite were not run.
+
+## 6 November 2026 - frontend verification and PayFast preparation
+See docs/design/sprint-6-review.md for current evidence and remaining acceptance work. Full check passed 214 tests in 26 files, lint and both TypeScript checks; production client build passed. Eight fixture screens checked at four viewport widths without document overflow; account/staff tabs, cancellation error, copy feedback and printed confirmation reviewed. Added payfast:check and docs/payfast-sandbox.md. Sandbox credentials/public callbacks are missing; no live payment performed. Sprint 6 remains open for the documented real integration, accessibility and device checks.
