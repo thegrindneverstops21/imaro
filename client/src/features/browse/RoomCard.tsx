@@ -40,9 +40,9 @@ export function RoomCard({ room, photo, branchSlug, index }: RoomCardProps) {
         <h3>{room.name}</h3>
         <p className="room-description">{room.description}</p>
         <div className="room-specs">
-          <span>{room.sizeM2} m²</span>
-          <span>{room.bed}</span>
-          <span>Up to {room.capacity} guests</span>
+          <span className="room-spec"><Icon name="ruler" />{room.sizeM2} m²</span>
+          <span className="room-spec"><Icon name="bed" />{room.bed}</span>
+          <span className="room-spec"><Icon name="users" />Up to {room.capacity} guests</span>
         </div>
         <div className="editorial-room-footer">
           <div>
@@ -57,8 +57,8 @@ export function RoomCard({ room, photo, branchSlug, index }: RoomCardProps) {
             )}
           </div>
           <div className="room-card-actions">
-            <Link className="text-link" to={`/room/${branchSlug}/${room.slug}`}>
-              View this room <Icon name="arrowUpRight" />
+            <Link className="button room-select-cta" to={`/room/${branchSlug}/${room.slug}`}>
+              Select room
             </Link>
             {!room.canBook && <span className="unavailable">Unavailable for this stay</span>}
           </div>

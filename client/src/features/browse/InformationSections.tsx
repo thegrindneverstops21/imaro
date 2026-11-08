@@ -142,6 +142,14 @@ export function InformationAside({ branch, query }: AsideProps) {
     <aside className="information-aside">
       <h2>Your stay in {branch.city}</h2>
       <p>{branch.address}</p>
+      <a
+        className="text-button information-directions"
+        href={`${MAPS_SEARCH}${encodeURIComponent(`${branch.address}, ${branch.city}`)}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Get directions (opens Google Maps)
+      </a>
       {branch.checkInTime && <p>Check in from {clock(branch.checkInTime)}</p>}
       {branch.checkOutTime && <p>Check out by {clock(branch.checkOutTime)}</p>}
       <Link className="button" to={`/rooms${query}`}>

@@ -1,3 +1,6 @@
+import { usePendingChanges } from "../../components/ui/NavigationGuard";
+import { SuccessBanner } from "../../components/ui/SuccessBanner";
+import { Form } from "../../components/ui/Form";
 import { Icon } from "../../components/Icon";
 import { useEffect, useRef, useState } from "react";
 import { Reveal } from "../../components/aceternity/Reveal";
@@ -18,6 +21,7 @@ import {
   type AppDispatch,
   type RootState,
 } from "../../app/store";
+import { useFeedback } from "../../components/ui/Feedback";
 import { LOCATION_SAVED, SAVE_LOCATION, SAVED_STAYS } from "../../lib/labels";
 
 const HERO_PHOTO = "imaro.hero-photo";
@@ -50,6 +54,7 @@ export function BrowsePage({
   const favorites = useSelector((state: RootState) => state.favorites);
   const user = useSelector((state: RootState) => state.user);
   const [saving, setSaving] = useState(false);
+  const { notify, confirm } = useFeedback();
   const [branches, setBranches] = useState<Branch[]>([]);
   const linkedSlug = new URLSearchParams(location.search).get("branch") ?? "";
   const selectedSlug = linkedSlug;
@@ -74,6 +79,7 @@ export function BrowsePage({
   const [notifyStatus, setNotifyStatus] = useState("");
   const [notifyError, setNotifyError] = useState("");
   const [notifyBusy, setNotifyBusy] = useState(false);
+  usePendingChanges(Boolean(notifyEmail) && !notifyStatus);
   const bookingArea = useRef<HTMLElement>(null);
   const heroArea = useRef<HTMLElement>(null);
 
@@ -113,9 +119,16 @@ export function BrowsePage({
 
     setSaving(true); setSaveError("");
     try {
-      await request(`/me/favourites/${encodeURIComponent(slug)}`, json(favorites.includes(slug) ? "DELETE" : "PUT"));
+      const removing = favorites.includes(slug);
+      if (removing && !(await confirm({ title: "Remove saved location?", message: "This location will be removed from your saved stays. You can save it again later.", confirmLabel: "Remove location", cancelLabel: "Keep location", danger: true }))) return;
+      await request(`/me/favourites/${encodeURIComponent(slug)}`, json(removing ? "DELETE" : "PUT"));
       dispatch(toggleFavorite(slug));
-    } catch (cause) { setSaveError(message(cause)); }
+      notify("success", removing ? "Location removed from saved stays." : "Location saved to your account.");
+    } catch (cause) {
+      const text = message(cause);
+      setSaveError(text);
+      notify("error", "Could not update saved stays", text);
+    }
     finally { setSaving(false); }
   }
 
@@ -239,7 +252,7 @@ export function BrowsePage({
         />
       )}
       <section className="search-wrap" id="book" ref={bookingArea} aria-label="Find a room">
-        <form
+        <Form
           className="search-panel booking-bar"
           onSubmit={(event) => {
             event.preventDefault();
@@ -295,7 +308,7 @@ export function BrowsePage({
           <button className="button" type="submit" disabled={loading}>
             {loading ? "Checking rooms…" : "Check availability"} <Icon name="arrowRight" />
           </button>
-        </form>
+        </Form>
         {validation && <p className="form-error" role="alert">{validation}</p>}
         {changed && !validation && <p className="search-hint" role="status">Dates or guests changed. Check availability to update the room prices below.</p>}
         {roomHint && <p className="search-hint" role="status">Depending on room size, your party may need {roomHint} room{roomHint.includes("–") ? "s" : roomHint === "1" ? "" : "s"}.</p>}
@@ -308,30 +321,22 @@ export function BrowsePage({
                 ? `Your ${SAVED_STAYS.toLowerCase()}`
                 : roomsPage ? (active?.city ?? "Available rooms") : "Rooms to settle into"}
             </h2>
-            <p>
+            <p className="stay-query">
               {active ? `${active.city} · ` : ""}
               {formatDate(stay.checkIn)} — {formatDate(stay.checkOut)} ·{" "}
               {pluralize(stay.guests, "guest")} · {pluralize(stay.rooms, "room")}
             </p>
           </div>
-          {locations.length > 1 && (
-            <div className="location-tabs" aria-label="Imaro locations">
-              {locations.map((branch) => (
-                <button
-                  key={branch.slug}
-                  className={branch.slug === active?.slug ? "active" : ""}
-                  aria-pressed={branch.slug === active?.slug}
-                  onClick={() => setSelectedSlug(branch.slug)}
-                >
-                  {branch.city}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
         {active && !loading && !error && <div className="room-toolbar">
-          <button className="text-link" aria-pressed={favorites.includes(active.slug)} disabled={saving} onClick={() => void saveStay(active.slug)}>
-            <Icon name="heart" />{favorites.includes(active.slug) ? LOCATION_SAVED : SAVE_LOCATION}
+          <button
+            className={`save-location-toggle${favorites.includes(active.slug) ? " is-saved" : ""}`}
+            aria-pressed={favorites.includes(active.slug)}
+            disabled={saving}
+            onClick={() => void saveStay(active.slug)}
+          >
+            <Icon name="heart" />
+            {saving ? "Saving…" : favorites.includes(active.slug) ? LOCATION_SAVED : SAVE_LOCATION}
           </button>
           {roomsPage && <label>Sort rooms<select value={sort} onChange={(event) => setSort(event.target.value)}><option value="recommended">Recommended</option><option value="price">Lowest nightly rate</option><option value="size">Largest room</option></select></label>}
         </div>}
@@ -382,7 +387,7 @@ export function BrowsePage({
           <div className="empty-state availability-notice" role="status">
             <h3>{displayBrand(active.name)} is not yet bookable.</h3>
             <p>This published location has no rooms available yet. Check back soon or choose another location.</p>
-            <form className="availability-signup" onSubmit={(event) => { event.preventDefault(); void subscribeToAvailability(active.slug); }}>
+            <Form className="availability-signup" onSubmit={(event) => { event.preventDefault(); void subscribeToAvailability(active.slug); }}>
               <label>
                 Notify me when rooms are available
                 <input type="email" required value={notifyEmail} onChange={(event) => setNotifyEmail(event.target.value)} placeholder="you@example.com" />
@@ -390,8 +395,8 @@ export function BrowsePage({
               <button className="button button-outline" disabled={notifyBusy}>
                 {notifyBusy ? "Saving…" : "Notify me"}
               </button>
-            </form>
-            {notifyStatus && <p className="inline-message" role="status">{notifyStatus}</p>}
+            </Form>
+            {notifyStatus && <SuccessBanner>{notifyStatus}</SuccessBanner>}
             {notifyError && <p className="form-error" role="alert">{notifyError}</p>}
             {active.phone && <a className="button button-outline" href={`tel:${active.phone.replace(/[^+\d]/g, "")}`}>Call this hotel</a>}
             {active.email && <a className="button button-outline" href={`mailto:${active.email}`}>Email this hotel</a>}
@@ -477,8 +482,8 @@ export function BrowsePage({
           <p className="hotel-location">
             {active?.address ?? "Imaro Hotel, South Africa"}
           </p>
-          <a href="#book" className="text-link">
-            Plan your stay <Icon name="arrowUpRight" />
+          <a href="#book" className="button button-outline hotel-plan-cta">
+            Plan your stay
           </a>
         </div>
       </section></Reveal>}
