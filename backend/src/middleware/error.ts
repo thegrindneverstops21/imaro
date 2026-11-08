@@ -41,6 +41,9 @@ const DATABASE_FAILURES: Record<string, Failure> = {
 };
 
 export function toFailure(error: unknown): Failure {
+  if (typeof error === "object" && error !== null && "type" in error && error.type === "entity.too.large") {
+    return { status: 413, message: "Choose a smaller file or shorten the submitted details." };
+  }
   if (error instanceof ZodError) {
     return {
       status: HttpStatus.BadRequest,
