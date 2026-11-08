@@ -5,6 +5,7 @@ import { bookingsRouter } from "./bookings";
 import { authRouter } from "./auth";
 import { adminRouter } from "./admin";
 import { meRouter } from "./me";
+import { reviewsRouter } from "./reviews";
 
 export const router = Router();
 
@@ -19,3 +20,4 @@ router.use("/bookings", bookingsRouter);
 router.use("/auth", authRouter);
 router.use("/admin", adminRouter);
 router.use("/me", meRouter);
+router.use("/reviews", reviewsRouter);

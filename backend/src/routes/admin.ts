@@ -1,4 +1,5 @@
-import { Router } from "express";
+import { raw, Router } from "express";
+import { saveUploadedImage } from "../services/imageUploadService";
 import { HttpStatus } from "../constants/http";
 import { requireAdmin } from "../middleware/auth";
 import * as admin from "../services/adminService";
@@ -6,7 +7,7 @@ import {
   reservationFilters,
   adminId,
   bookingUpdate,
-  branchInput,
+  branchCreateInput,
   branchPatch,
   priceInput,
   roomInput,
@@ -16,6 +17,10 @@ import {
 export const adminRouter = Router();
 adminRouter.use(requireAdmin); // applies to everything below
 
+adminRouter.post("/uploads", raw({ type: "application/octet-stream", limit: "5mb" }), async (req, res) => {
+  res.status(HttpStatus.Created).json({ data: await saveUploadedImage(req.body) });
+});
+
 //Branches
 adminRouter.get("/branches", async (_req, res) =>
   res.json({ data: await admin.listBranches() }),
@@ -23,7 +28,10 @@ adminRouter.get("/branches", async (_req, res) =>
 adminRouter.post("/branches", async (req, res) =>
   res
     .status(HttpStatus.Created)
-    .json({ data: await admin.createBranch(branchInput.parse(req.body)) }),
+    .json({ data: await admin.createBranch(branchCreateInput.parse(req.body)) }),
+);
+adminRouter.get("/room-types", async (_req, res) =>
+  res.json({ data: await admin.listRoomTypes() }),
 );
 adminRouter.patch("/branches/:id", async (req, res) =>
   res.json({
