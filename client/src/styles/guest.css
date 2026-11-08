@@ -120,11 +120,10 @@
 .guest-header.over-hero .wordmark small {
   color: #ffffffbf;
 }
-/* Hero: a full-bleed photograph, with the search card floating over its lower edge. */
+/* Photograph-led hero followed by a flat, clearly separated booking form. */
 .guest-browse .imaro-hero {
   min-height: clamp(620px, 86svh, 900px);
   align-items: flex-end;
-  user-select: none;
   margin-top: calc(-1 * var(--guest-header-height));
 }
 .guest-browse .imaro-hero .hero-image {
@@ -145,13 +144,13 @@
   inset: 0;
   background:
     linear-gradient(180deg, #0d2133d9 0%, #0d213300 26%),
-    linear-gradient(90deg, #10253be6 0%, #10253b80 46%, #10253b00 100%),
+    linear-gradient(90deg, #10253bbf 0%, #10253b40 52%, #10253b00 100%),
     linear-gradient(0deg, #10253bd9 0%, #10253b00 38%);
 }
 .guest-browse .imaro-hero .hero-copy {
   max-width: 880px;
-  padding: 0 0 168px;
-  margin-inline: 7%;
+  padding: 0 0 112px;
+  margin-inline: 5%;
 }
 .guest-browse .imaro-hero h1 {
   font-size: clamp(48px, 6.3vw, 88px);
@@ -175,7 +174,7 @@
   border-color: #e9e8e3;
 }
 .guest-browse .hero-caption {
-  bottom: 116px;
+  bottom: 40px;
   right: 5%;
   color: white;
   font-size: 14px;
@@ -191,19 +190,20 @@
   scroll-margin-top: 16px;
 }
 .guest-browse .imaro-hero + .search-wrap {
-  margin-top: -88px;
+  margin-top: 0;
 }
 .guest-browse .search-panel {
-  padding: 26px 28px;
-  background: var(--paper);
-  box-shadow: 0 16px 32px -26px #10253b80;
+  padding: 32px 0;
+  background: transparent;
+  box-shadow: none;
+  border-bottom: 1px solid #d6d2c9;
   gap: 22px;
   grid-template-columns: 1.2fr 1fr 1fr 0.7fr 0.7fr auto;
 }
 .guest-browse .imaro-hero + .search-wrap .search-panel {
-  box-shadow: 0 44px 80px -32px #10253bd9;
+  box-shadow: none;
 }
-.guest-browse .search-panel label {
+.guest-browse .search-panel label:not(:where(.heroui-control, .heroui-control *)) {
   font-size: 14px;
   font-weight: 400;
   letter-spacing: 0;
@@ -211,11 +211,46 @@
   color: var(--ink);
   gap: 4px;
 }
-.guest-browse .search-panel input,
-.guest-browse .search-panel select {
+.guest-browse .search-panel input:not(:where(.heroui-control *)),
+.guest-browse .search-panel select:not(:where(.heroui-control *)) {
   min-height: 46px;
   font-size: 16px;
   border-bottom-color: #8a949d;
+}
+.guest-browse .search-field {
+  min-width: 0;
+}
+.guest-browse .search-field [data-slot="trigger"] {
+  min-height: 74px;
+  border-radius: 0;
+  padding: 10px 12px;
+  border: 1px solid #b6bcbf;
+  box-shadow: none;
+  background: transparent;
+}
+.guest-browse .search-field [data-slot="label"] {
+  color: #405164;
+  font: 400 14px/1.4 "Source Sans 3", sans-serif;
+}
+.guest-browse .search-field [data-slot="value"] {
+  color: #16324f;
+  font: 400 16px/1.5 "Source Sans 3", sans-serif;
+}
+.guest-browse .search-panel > label.search-field {
+  min-height: 74px;
+  padding: 8px 12px;
+  border: 1px solid #b6bcbf;
+}
+.guest-browse .search-panel > label.search-field input {
+  border: 0;
+  padding: 0;
+  min-height: 32px;
+  background: transparent;
+  width: 100%;
+}
+.guest-browse .search-field [data-slot="trigger"]:focus-visible {
+  outline: 2px solid #16324f;
+  outline-offset: 3px;
 }
 .guest-browse .search-panel .button {
   min-height: 50px;
@@ -244,19 +279,21 @@
   flex-wrap: wrap;
 }
 .guest-browse .location-tabs button {
-  padding: 12px 16px;
+  padding: 12px 0;
+  margin-right: 24px;
   font-size: 16px;
   letter-spacing: 0;
   text-transform: none;
 }
 .guest-browse .location-tabs button.active {
-  background: #e5e7e6;
+  background: transparent;
+  box-shadow: inset 0 -2px var(--blue);
 }
 .guest-browse .location-tabs button.active::after {
   display: none;
 }
 .guest-browse .room-grid {
-  gap: 48px 36px;
+  gap: 56px 40px;
 }
 .guest-browse .editorial-room:nth-child(even) {
   margin-top: 0;
@@ -267,7 +304,7 @@
   aspect-ratio: 4 / 3;
 }
 .guest-browse .editorial-room-copy {
-  padding-top: 24px;
+  padding-top: 20px;
 }
 .guest-browse .editorial-room-copy h3 {
   font-size: 30px;
@@ -427,7 +464,7 @@
   text-transform: none;
   letter-spacing: 0;
 }
-.guest-browse .room-toolbar select {
+.guest-browse .room-toolbar select:not(:where(.heroui-control *)) {
   font-size: 16px;
   min-height: 44px;
 }
@@ -453,7 +490,7 @@
   color: var(--ink);
   gap: 8px;
 }
-.auth-form input {
+.auth-form input:not(:where(.heroui-control *)) {
   min-height: 48px;
   font-size: 16px;
   border: 0;
@@ -762,7 +799,7 @@
     min-height: 540px;
   }
   .guest-browse .imaro-hero .hero-copy {
-    padding: 0 0 128px;
+    padding: 0 0 104px;
     margin-inline: 5%;
   }
   .guest-browse .imaro-hero h1 {
@@ -776,7 +813,7 @@
   .guest-browse .hero-caption {
     left: 5%;
     right: auto;
-    bottom: 84px;
+    bottom: 28px;
   }
   .guest-browse .imaro-hero + .search-wrap {
     margin-top: -56px;
@@ -786,11 +823,11 @@
     gap: 18px;
     padding: 20px;
   }
-  .guest-browse .search-panel label:first-child,
+  .guest-browse .search-panel > .search-field:first-child,
   .guest-browse .search-panel .button {
     grid-column: 1 / -1;
   }
-  .guest-browse .search-panel label:nth-child(3) {
+  .guest-browse .search-panel > .search-field:nth-child(3) {
     grid-column: auto;
   }
   .guest-browse .rooms-section {
@@ -891,7 +928,7 @@
   font-size: 16px;
   line-height: 1.6;
 }
-.guest-checkout label {
+.guest-checkout label:not(:where(.heroui-control, .heroui-control *)) {
   font-size: 16px;
   letter-spacing: 0;
   text-transform: none;
@@ -900,18 +937,18 @@
   gap: 24px;
   margin-block: 32px;
 }
-.guest-checkout .form-grid label small {
+.guest-checkout .form-grid label:not(:where(.heroui-control, .heroui-control *)) small {
   font-size: 14px;
 }
-.guest-checkout input,
-.guest-checkout textarea {
+.guest-checkout input:not(:where(.heroui-control *)),
+.guest-checkout textarea:not(:where(.heroui-control *)) {
   font-size: 16px;
   min-height: 48px;
 }
 .guest-checkout .terms-choice {
   margin-block: 24px;
 }
-.guest-checkout .terms-choice input {
+.guest-checkout .terms-choice input:not(:where(.heroui-control *)) {
   min-height: 20px;
   width: 20px;
   height: 20px;
@@ -1095,7 +1132,7 @@
   font-size: 18px;
   line-height: 1.65;
 }
-.information-heading select {
+.information-heading select:not(:where(.heroui-control *)) {
   min-width: 240px;
   font-size: 16px;
 }
@@ -1412,4 +1449,84 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 6px;
+}
+
+/* ---------- Motion layer (Sprint B: Aceternity/Framer micro-interactions) ---------- */
+.guest-browse .editorial-room-photo {
+  overflow: hidden;
+}
+.editorial-room-photo-fill {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.bento-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 18px 20px;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.5;
+}
+@media (max-width: 800px) {
+  .bento-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bento-card {
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+}
+
+/* ---------- Sprint C: booking journey ---------- */
+.hold-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.hold-countdown .ui-icon {
+  width: 18px;
+  height: 18px;
+}
+.hold-countdown.expiring {
+  color: #8a5a17;
+}
+.hold-countdown.expired {
+  color: var(--error);
+}
+.checkout-summary-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 0 0 24px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 18px;
+  text-align: left;
+  cursor: pointer;
+}
+.checkout-summary-toggle .ui-icon {
+  transition: transform 0.3s var(--ease, ease);
+}
+.checkout-summary-toggle[aria-expanded="false"] .ui-icon {
+  transform: rotate(-90deg);
+}
+.checkout-summary-body {
+  overflow: hidden;
+}
+.search-field {
+  min-width: 0;
 }

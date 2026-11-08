@@ -25,10 +25,10 @@
 .admin-workspace, .admin-editor fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .admin-panel { background: transparent; border: 0; padding: 24px 0; }
 .admin-panel h2, .admin-editor h2 { font: 600 24px/1.3 "Source Sans 3", sans-serif; }
-.admin-filters, .admin-inline-form { display: flex; align-items: end; gap: 20px; flex-wrap: wrap; background: #e9e8e3; padding: 24px; margin-bottom: 24px; }
+.admin-filters, .admin-inline-form { display: flex; align-items: end; gap: 20px; flex-wrap: wrap; background: transparent; padding: 24px 0; border-block: 1px solid var(--line); margin-bottom: 24px; }
 .admin-filters label { flex: 1 1 220px; }
 .admin-shell table { font-size: 15px; min-width: 720px; background: white; }
-.admin-shell th { font-size: 14px; text-transform: none; letter-spacing: 0; background: #e9e8e3; color: var(--ink); }
+.admin-shell th { font-size: 14px; text-transform: none; letter-spacing: 0; background: #f5f4f0; color: var(--ink); }
 .admin-shell td { padding: 18px 12px; }
 .admin-shell td small { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
 .admin-shell td strong { font-weight: 600; }

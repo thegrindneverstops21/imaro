@@ -9,7 +9,7 @@
   text-rendering: optimizeLegibility;
   --ink: #16324f;
   --muted: #475569;
-  --blue: #2563eb;
+  --blue: #16324f;
   --deep: #16324f;
   --cream: #f6f3ed;
   --paper: #fffdf9;
@@ -54,9 +54,9 @@ body {
 }
 
 button,
-input,
-select,
-textarea {
+input:not(:where(.heroui-control *)),
+select:not(:where(.heroui-control *)),
+textarea:not(:where(.heroui-control *)) {
   font: inherit;
 }
 
@@ -344,7 +344,7 @@ h2 {
   box-shadow: 0 12px 32px #18251d15;
 }
 
-label {
+label:not(:where(.heroui-control, .heroui-control *)) {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -355,9 +355,9 @@ label {
   text-transform: uppercase;
 }
 
-input,
-select,
-textarea {
+input:not(:where(.heroui-control *)),
+select:not(:where(.heroui-control *)),
+textarea:not(:where(.heroui-control *)) {
   min-width: 0;
   width: 100%;
   color: var(--ink);
@@ -370,14 +370,14 @@ textarea {
   text-transform: none;
 }
 
-input::placeholder,
-textarea::placeholder {
+input:not(:where(.heroui-control *))::placeholder,
+textarea:not(:where(.heroui-control *))::placeholder {
   color: #9aa19b;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+input:not(:where(.heroui-control *)):focus,
+select:not(:where(.heroui-control *)):focus,
+textarea:not(:where(.heroui-control *)):focus {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-color: var(--focus);
@@ -425,7 +425,7 @@ textarea:focus {
   max-width: 95px;
 }
 
-.price-filters input {
+.price-filters input:not(:where(.heroui-control *)) {
   padding: 9px;
 }
 
@@ -735,13 +735,13 @@ textarea:focus {
   grid-column: 1 / -1;
 }
 
-.form-grid label small {
+.form-grid label:not(:where(.heroui-control, .heroui-control *)) small {
   font-size: 9px;
   text-transform: none;
   letter-spacing: 0;
 }
 
-.form-grid textarea {
+.form-grid textarea:not(:where(.heroui-control *)) {
   resize: vertical;
 }
 
@@ -775,8 +775,8 @@ textarea:focus {
   letter-spacing: 0;
 }
 
-.radio-choice input,
-.terms-choice input {
+.radio-choice input:not(:where(.heroui-control *)),
+.terms-choice input:not(:where(.heroui-control *)) {
   width: 16px;
   height: 16px;
   margin: 2px 0;
@@ -806,7 +806,7 @@ textarea:focus {
   margin: 12px 0 0;
 }
 
-.terms-choice {
+.terms-choice:not(.heroui-control) {
   flex-direction: row;
   align-items: start;
   gap: 11px;
@@ -1375,10 +1375,10 @@ td button {
     padding: 17px;
     gap: 13px;
   }
-  .search-panel label:first-child {
+  .search-panel > .search-field:first-child {
     grid-column: 1 / -1;
   }
-  .search-panel label:nth-child(3) {
+  .search-panel > .search-field:nth-child(3) {
     grid-column: 1 / -1;
   }
   .search-panel .button {
@@ -1594,12 +1594,12 @@ html {
   box-shadow: 0 16px 45px #10253b1c;
 }
 
-.search-panel label {
+.search-panel label:not(:where(.heroui-control, .heroui-control *)) {
   letter-spacing: 0.12em;
 }
 
-.search-panel input,
-.search-panel select {
+.search-panel input:not(:where(.heroui-control *)),
+.search-panel select:not(:where(.heroui-control *)) {
   border: 0;
   border-bottom: 1px solid #d6d2c9;
   background: transparent;
@@ -1993,10 +1993,10 @@ html {
     grid-template-columns: 1fr 1fr;
     padding: 18px;
   }
-  .search-panel label:first-child {
+  .search-panel > .search-field:first-child {
     grid-column: 1 / -1;
   }
-  .search-panel label:nth-child(3) {
+  .search-panel > .search-field:nth-child(3) {
     grid-column: auto;
   }
   .search-panel .button {
@@ -2059,3 +2059,25 @@ html {
     font-size: 58px;
   }
 }
+
+/* Shared component boundaries: the same calm form treatment across guest/account pages. */
+.heroui-control [data-slot="input-wrapper"] {
+  background: #fff;
+  border: 1px solid #b6bcbf;
+  border-radius: 4px;
+  box-shadow: none;
+  min-height: 64px;
+}
+.heroui-control [data-slot="input-wrapper"]:focus-within {
+  border-color: #16324f;
+  outline: 2px solid #16324f;
+  outline-offset: 2px;
+}
+.heroui-control [data-slot="input"],
+.heroui-control [data-slot="label"] {
+  font-family: "Source Sans 3", sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.heroui-control [data-slot="input"] { font-size: 16px; color: #16324f; }
+.heroui-control [data-slot="label"] { font-size: 14px; color: #405164; }
