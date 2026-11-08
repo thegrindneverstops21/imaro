@@ -49,7 +49,27 @@ export type Branch = {
   policies?: { type: string; title: string; body: string }[];
   roomTypes?: RoomType[];
 };
-export type User = { id: number; name: string; email: string; role: string; phone?: string | null };
+export type PageMeta = {
+  total: number;
+  limit: number;
+  offset: number;
+  ratingAverage?: number | null;
+};
+export type Review = {
+  id: number;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  firstName: string;
+  branchSlug: string;
+  branchName: string;
+  helpfulCount: number;
+  reacted: boolean;
+};
+export type ReviewReaction = { reacted: boolean; helpfulCount: number };
+export type User = {
+  id: number; name: string; email: string; role: string; phone?: string | null;
+};
 export type Booking = {
   amountPaid: number;
   balanceDue: number;
@@ -65,6 +85,10 @@ export type Booking = {
   vatIncluded: number;
   holdExpiresAt: string | null;
   guest: { name: string; email: string; phone: string };
+  billingAddress: {
+    addressLine1: string; addressLine2: string | null; city: string;
+    province: string; postalCode: string; country: string;
+  } | null;
   rooms: { roomType: string; rooms: number; pricePerNight: number }[];
   cancellation: {
     freeCancellation: boolean;
