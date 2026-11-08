@@ -34,3 +34,17 @@ export async function listReviews(slug: string, page: Page) {
   const { data, total } = await repo.listReviews(branch.id, page);
   return { data, meta: { total, ...page } };
 }
+export async function listAllReviews(page: Page, userId: number | null) {
+  const { data, total, ratingAverage } = await repo.listAllReviews(
+    page,
+    userId,
+  );
+  return { data, meta: { total, ratingAverage, ...page } };
+}
+export async function toggleReaction(reviewId: number, userId: number) {
+  return withTransaction(async (db) => {
+    if (!(await repo.reviewExists(db, reviewId)))
+      throw new AppError(HttpStatus.NotFound, ErrorMessage.ReviewNotFound);
+    return repo.toggleReaction(db, reviewId, userId);
+  });
+}

@@ -1,14 +1,3 @@
-/**
- * ADMIN SERVICE
- *
- * Management actions for staff. The interesting parts are the guards:
- *  - a room cannot change type or go into maintenance while it has live bookings
- *  - a booking can only be approved once it is paid
- *  - changing dates/guest counts re-allocates physical rooms and re-prices the stay
- *
- * "lockBooking"/"findRoomForUpdate" read the row with SELECT ... FOR UPDATE so two
- * admins clicking at the same time cannot corrupt the same record.
- */
 import { BookingStatus, RoomStatus } from "../constants/domain";
 import { NotificationEvent } from "../constants/account";
 import { notifyBooking } from "./notificationService";
@@ -26,20 +15,30 @@ import { previewCancellation, toBookingView } from "../domain/bookingView";
 import * as repo from "../repositories/adminRepository";
 import type {
   BookingUpdate,
-  BranchInput,
+  BranchCreateInput,
   BranchPatch,
   RoomInput,
   RoomPatch,
 } from "../validation/admin";
 
-const notFound = (): never => { throw new AppError(HttpStatus.NotFound, ErrorMessage.ResourceNotFound); };
+const notFound = (): never => {
+  throw new AppError(HttpStatus.NotFound, ErrorMessage.ResourceNotFound);
+};
 const conflict = () =>
-  new AppError(
-    HttpStatus.Conflict,
-    ErrorMessage.AdminConflict,
-  );
+  new AppError(HttpStatus.Conflict, ErrorMessage.AdminConflict);
 export const listBranches = () => repo.listBranches();
-export const createBranch = (input: BranchInput) => repo.createBranch(input);
+export const listRoomTypes = () => repo.listRoomTypes();
+export const createBranch = (input: BranchCreateInput) =>
+  withTransaction(async (db) => {
+    const branch = await repo.createBranch(input, db);
+    await repo.createBranchContent(branch.id, input, db);
+    return {
+      ...branch,
+      images: input.images,
+      amenities: input.amenities.map((name) => ({ name })),
+      policies: input.policies,
+    };
+  });
 export async function updateBranch(id: number, patch: BranchPatch) {
   return (await repo.updateBranch(id, patch)) ?? notFound();
 }
@@ -76,16 +75,10 @@ export async function approveReservation(reference: string) {
   return withTransaction(async (db) => {
     const booking = await lockBooking(reference, db);
     if (booking.status !== BookingStatus.PendingApproval)
-      throw new AppError(
-        HttpStatus.Conflict,
-        ErrorMessage.ApprovalStatus,
-      );
+      throw new AppError(HttpStatus.Conflict, ErrorMessage.ApprovalStatus);
     const approved = await repo.approveBooking(booking.id, db);
     if (!approved)
-      throw new AppError(
-        HttpStatus.Conflict,
-        ErrorMessage.ApprovalPayment,
-      );
+      throw new AppError(HttpStatus.Conflict, ErrorMessage.ApprovalPayment);
     await notifyBooking(db, booking, NotificationEvent.Approval);
     return approved;
   });
@@ -95,7 +88,9 @@ export async function modifyReservation(
   reference: string,
   update: BookingUpdate,
 ) {
-  return withTransaction((db) => modifyReservationInTransaction(reference, update, db));
+  return withTransaction((db) =>
+    modifyReservationInTransaction(reference, update, db),
+  );
 }
 
 async function modifyReservationInTransaction(
@@ -105,14 +100,21 @@ async function modifyReservationInTransaction(
 ) {
   await bookings.sweepExpiredHolds(db);
   const booking = await lockBooking(reference, db);
-  if (booking.status !== BookingStatus.PendingApproval && booking.status !== BookingStatus.Confirmed) {
+  if (
+    booking.status !== BookingStatus.PendingApproval &&
+    booking.status !== BookingStatus.Confirmed
+  ) {
     throw new AppError(HttpStatus.Conflict, ErrorMessage.ModificationStatus);
   }
   if (booking.checkIn <= todayIso()) throw conflict();
   const checkIn = update.checkIn ?? booking.checkIn;
   const checkOut = update.checkOut ?? booking.checkOut;
   validateModificationDates(checkIn, checkOut);
-  const result = await reallocateBooking(booking, { checkIn, checkOut, guests: update.guests ?? booking.guests }, db);
+  const result = await reallocateBooking(
+    booking,
+    { checkIn, checkOut, guests: update.guests ?? booking.guests },
+    db,
+  );
   if (!result) return notFound();
   await notifyBooking(db, booking, NotificationEvent.Modification);
   return result;
@@ -129,7 +131,12 @@ export async function cancelReservation(reference: string) {
     await bookings.recordCancellation(db, booking.id, cancellation);
     await bookings.markCancelled(db, booking.id, paymentStatus);
     await notifyBooking(db, booking, NotificationEvent.Cancellation);
-    return { reference, status: BookingStatus.Cancelled, paymentStatus, cancellation };
+    return {
+      reference,
+      status: BookingStatus.Cancelled,
+      paymentStatus,
+      cancellation,
+    };
   });
 }
 
@@ -137,7 +144,11 @@ export async function getReservation(reference: string) {
   const booking = await bookings.findBooking(reference);
   if (!booking) return notFound();
   return {
-    ...toBookingView(booking, await bookings.findRoomSummary(booking.id), new Date()),
+    ...toBookingView(
+      booking,
+      await bookings.findRoomSummary(booking.id),
+      new Date(),
+    ),
     specialRequests: booking.specialRequests,
     assignedRooms: await repo.findAssignedRooms(booking.id),
     payments: await repo.findPayments(booking.id),
@@ -156,33 +167,59 @@ function validateModificationDates(checkIn: string, checkOut: string) {
 async function guardRoomChange(id: number, patch: RoomPatch, db: Queryable) {
   const room = await repo.findRoomForUpdate(id, db);
   if (!room) throw new AppError(HttpStatus.NotFound, ErrorMessage.RoomNotFound);
-  if (patch.status !== RoomStatus.Maintenance &&
-      (patch.roomTypeId === undefined || patch.roomTypeId === room.roomTypeId)) return;
+  if (
+    patch.status !== RoomStatus.Maintenance &&
+    (patch.roomTypeId === undefined || patch.roomTypeId === room.roomTypeId)
+  )
+    return;
   if (await repo.hasLiveReservations(id, todayIso(), db))
     throw new AppError(HttpStatus.Conflict, ErrorMessage.RoomReserved);
 }
 
 // Moves a booking to new dates: frees the old rooms, finds new free ones of the
 // same type, then recalculates the total for the new number of nights.
-async function reallocateBooking(booking: BookingRow, stay: repo.StayChange, db: Queryable) {
+async function reallocateBooking(
+  booking: BookingRow,
+  stay: repo.StayChange,
+  db: Queryable,
+) {
   const allocations = await repo.findAllocations(booking.id, db);
   const capacity = allocations.reduce((sum, room) => sum + room.capacity, 0);
   if (!allocations.length || stay.guests > capacity)
     throw new AppError(HttpStatus.BadRequest, ErrorMessage.CapacityExceeded);
   await repo.clearAllocations(booking.id, db);
   for (const room of allocations) {
-    const ids = await bookings.findFreeRoomIds(db, { ...stay, ...room, limit: 1 });
-    if (!ids.length) throw new AppError(HttpStatus.Conflict, ErrorMessage.NoReplacementRooms);
-    await bookings.insertBookingRooms(db, { bookingId: booking.id, roomIds: ids,
-      pricePerNight: room.price, checkIn: stay.checkIn, checkOut: stay.checkOut });
+    const ids = await bookings.findFreeRoomIds(db, {
+      ...stay,
+      ...room,
+      limit: 1,
+    });
+    if (!ids.length)
+      throw new AppError(HttpStatus.Conflict, ErrorMessage.NoReplacementRooms);
+    await bookings.insertBookingRooms(db, {
+      bookingId: booking.id,
+      roomIds: ids,
+      pricePerNight: room.price,
+      checkIn: stay.checkIn,
+      checkOut: stay.checkOut,
+    });
   }
-  const total = round2(allocations.reduce((sum, room) => sum + room.price, 0) * nightsBetween(stay.checkIn, stay.checkOut));
+  const total = round2(
+    allocations.reduce((sum, room) => sum + room.price, 0) *
+      nightsBetween(stay.checkIn, stay.checkOut),
+  );
   await repo.updateBooking(booking.id, { ...stay, total }, db);
-  return toBookingView({ ...booking, ...stay, totalAmount: total },
-    await bookings.findRoomSummary(booking.id, db), new Date());
+  return toBookingView(
+    { ...booking, ...stay, totalAmount: total },
+    await bookings.findRoomSummary(booking.id, db),
+    new Date(),
+  );
 }
 
 export async function listReservations(filters: BookingFilters) {
   const { data, total } = await repo.findReservations(filters);
-  return { data, meta: { total, limit: filters.limit, offset: filters.offset } };
+  return {
+    data,
+    meta: { total, limit: filters.limit, offset: filters.offset },
+  };
 }

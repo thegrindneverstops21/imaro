@@ -38,6 +38,7 @@ export interface PasswordRegistration {
   name: string;
   email: string;
   password: string;
+  phone?: string;
 }
 
 export async function registerWithPassword(
@@ -48,6 +49,7 @@ export async function registerWithPassword(
     email: input.email,
     passwordHash: await hashPassword(input.password),
     role: roleFor(input.email),
+    phone: input.phone,
   });
   if (!user)
     throw new AppError(HttpStatus.Conflict, ErrorMessage.EmailAlreadyRegistered);
@@ -64,8 +66,13 @@ export async function signInWithPassword(
     : false;
   if (!account || !valid)
     throw new AppError(HttpStatus.Unauthorized, ErrorMessage.InvalidCredentials);
-  const { id, name, email: address, role } = account;
-  return { id, name, email: address, role };
+  return {
+    id: account.id,
+    name: account.name,
+    email: account.email,
+    role: account.role,
+    phone: account.phone,
+  };
 }
 
 const hashResetToken = (token: string) =>
