@@ -35,6 +35,7 @@ export const pageQuery = z.object({
   offset: z.coerce.number().int().min(0).default(0),
 });
 export const notificationId = z.coerce.number().int().positive();
+export const reviewId = z.coerce.number().int().positive();
 export type ProfilePatch = z.infer<typeof profilePatch>;
 export type ReviewInput = z.infer<typeof reviewBody>;
 export type Page = z.infer<typeof pageQuery>;

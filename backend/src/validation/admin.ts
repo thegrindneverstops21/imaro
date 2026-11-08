@@ -55,6 +55,19 @@ export const branchPatch = branchInput.partial().extend({
   checkOutTime: time.optional(),
   isPublished: z.boolean().optional(),
 });
+export const branchCreateInput = branchInput.extend({
+  images: z.array(z.object({
+    url: z.string().trim().url().max(2048).refine((value) => /^https?:\/\//i.test(value)),
+    alt: z.string().trim().min(1).max(300),
+  })).max(20).default([]),
+  amenities: z.array(z.string().trim().min(1).max(100)).max(50).default([]),
+  policies: z.array(z.object({
+    type: z.enum(["house_rules", "cancellation", "payment"]),
+    title: z.string().trim().min(1).max(160),
+    body: z.string().trim().min(1).max(5000),
+  })).max(20).default([]),
+});
+export type BranchCreateInput = z.infer<typeof branchCreateInput>;
 export const roomInput = z.object({
   roomTypeId: id,
   roomNumber: z.string().trim().min(1).max(ADMIN_FIELD_LIMITS.roomNumberMax),

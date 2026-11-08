@@ -10,13 +10,14 @@ const email = z
   .string()
   .trim()
   .toLowerCase()
-  .email()
+  .email("Enter a valid email address")
   .max(GUEST_FIELD_LIMITS.emailMax);
 
 export const registerBody = z.object({
-  name: z.string().trim().min(ACCOUNT_LIMITS.nameMin).max(GUEST_FIELD_LIMITS.nameMax),
+  name: z.string().trim().min(ACCOUNT_LIMITS.nameMin, "Enter your full name").max(GUEST_FIELD_LIMITS.nameMax),
   email,
-  password: z.string().min(PASSWORD_LIMITS.min).max(PASSWORD_LIMITS.max),
+  password: z.string().min(PASSWORD_LIMITS.min, `Password must be at least ${PASSWORD_LIMITS.min} characters`).max(PASSWORD_LIMITS.max),
+  phone: z.string().trim().min(GUEST_FIELD_LIMITS.phoneMin).max(GUEST_FIELD_LIMITS.phoneMax).optional(),
 });
 
 export const signInBody = z.object({
