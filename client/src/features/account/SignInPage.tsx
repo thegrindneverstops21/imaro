@@ -73,7 +73,6 @@ export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
 
   return (
     <section className="page-shell narrow auth-page">
-      <p className="eyebrow">YOUR IMARO</p>
       <h1>{resetMode ? "Reset your password." : creating ? "Create your account." : "Welcome back."}</h1>
       <p>
         {resetMode
