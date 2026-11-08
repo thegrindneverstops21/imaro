@@ -39,6 +39,7 @@ export function App() {
   const [heroVisible, setHeroVisible] = useState(true);
   const menuButton = useRef<HTMLButtonElement>(null);
   const checkout = /^\/(stay|review|confirmation|payment|manage|booking|admin)(\/|$)/.test(location.pathname);
+  const staffWorkspace = location.pathname === "/admin" && user?.role === "admin";
   const overHero = location.pathname === "/" && heroVisible;
   // Signing in from any page returns the guest to the page they were on.
   const signInTarget =
@@ -140,7 +141,7 @@ export function App() {
   return (
     <>
       <a className="skip-link" href="#main-content">Skip to content</a>
-      <header className={`site-header guest-header ${overHero ? "over-hero" : ""} ${bookingVisible || !["/", "/rooms"].includes(location.pathname) ? "booking-visible" : ""}`}>
+      {!staffWorkspace && <header className={`site-header guest-header ${overHero ? "over-hero" : ""} ${bookingVisible || !["/", "/rooms"].includes(location.pathname) ? "booking-visible" : ""}`}>
         <Link className="wordmark" to="/">
           IMARO<small>Hotel · South Africa</small>
         </Link>
@@ -193,7 +194,7 @@ export function App() {
             <Icon name={navOpen ? "close" : "menu"} />
           </button>
         </div>
-      </header>
+      </header>}
       {notice && (
         <div className="notice" role="status">
           <span>{notice}</span>
@@ -243,14 +244,14 @@ export function App() {
             path="/admin"
             element={
               <StaffGate user={user}>
-                <AdminPage />
+                <AdminPage onSignOut={signOut} userName={user?.name ?? "Staff"} />
               </StaffGate>
             }
           />
           <Route path="*" element={<div className="page-shell"><h1>Page not found</h1><p>Return to Imaro to find a room or manage your stay.</p><Link className="button" to="/">Back to home</Link></div>} />
         </Routes>
       </main>
-      <footer className="site-footer guest-footer">
+      {!staffWorkspace && <footer className="site-footer guest-footer">
         <div>
           <Link className="wordmark" to="/">
             IMARO<small>Hotel · South Africa</small>
@@ -268,7 +269,7 @@ export function App() {
           <Link to="/favorites">Saved stays</Link>
           {user?.role === "admin" && <Link to="/admin">Staff console</Link>}
         </div>
-      </footer>
+      </footer>}
     </>
   );
 }
