@@ -22,6 +22,7 @@ const emailList = z
   );
 
 const schema = z.object({
+  UPLOAD_DIR: z.string().min(1).default("uploads"),
   PAYFAST_MERCHANT_ID: z.string().optional(),
   PAYFAST_MERCHANT_KEY: z.string().optional(),
   PAYFAST_PASSPHRASE: z.string().default(""),
