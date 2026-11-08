@@ -42,3 +42,8 @@ Guest input stays in Redux memory during room/date navigation; it is not persist
 ## Discovery refinement — 6 November 2026
 
 Search now sits below the hero without overlap or a floating shadow. Date and selection controls share an outlined rectangular treatment. Hero copy is visible immediately; the photograph retains its reduced-motion-aware arrival. Location tabs use an underline and room cards stay stationary. Current rendered verification is pending due to the local preview startup failure recorded in docs/progress.md.
+
+
+## Staff workspace — 8 November 2026
+
+The user supplied a sidebar dashboard reference. Admin uses a navy left navigation, compact white top bar, warm neutral inventory summaries and a white table workspace. Cinzel is reserved for the Imaro wordmark; operational headings use Source Sans 3. Only implemented sections and factual inventory/rate counts are shown. At phone widths navigation moves above the workspace. Guest navigation/footer remain on guest and access-gate screens. Rendered verification remains pending.
