@@ -7,6 +7,7 @@ import { API_PREFIX, Environment, JSON_BODY_LIMIT } from "./constants/domain";
 import { errorHandler, notFound } from "./middleware/error";
 import { router } from "./routes";
 import { paymentsRouter } from "./routes/payments";
+import { imageUploadDirectory } from "./services/imageUploadService";
 
 export const app = express();
 
@@ -14,6 +15,13 @@ export const app = express();
 app.use(helmet());
 // CORS lets the React dev server (a different port) call this API with cookies.
 app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
+app.use(`${API_PREFIX}/uploads`, express.static(imageUploadDirectory, {
+  dotfiles: "deny",
+  index: false,
+  immutable: true,
+  maxAge: "1y",
+  setHeaders: (res) => { res.setHeader("Cross-Origin-Resource-Policy", "cross-origin"); },
+}));
 app.use(`${API_PREFIX}/payments`, paymentsRouter);
 // Parse JSON request bodies into `req.body`; cap the size to avoid abuse.
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
