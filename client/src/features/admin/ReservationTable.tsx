@@ -1,3 +1,4 @@
+import { Chip } from "../../components/ui";
 import { balanceLine, displayBrand, formatDate, formatMoney, pluralize } from "../../lib/format";
 import type { AdminBooking } from "../../types/api";
 import {
@@ -15,11 +16,24 @@ export type RowActions = {
 
 type RowProps = { booking: AdminBooking; actions: RowActions };
 
+type ChipColor = "default" | "primary" | "secondary" | "success" | "warning" | "danger";
+
+function statusColor(status: string): ChipColor {
+  if (/cancel|expir|fail|reject/i.test(status)) return "danger";
+  if (/pending|held|review/i.test(status)) return "warning";
+  if (/confirm|paid|complet|approv/i.test(status)) return "success";
+  return "default";
+}
+
 function StatusCell({ booking }: { booking: AdminBooking }) {
   return (
     <td>
-      <span className={`status-tag status-${booking.status}`}>{readable(booking.status)}</span>
-      <small>{readable(booking.paymentStatus)}</small>
+      <Chip size="sm" variant="flat" color={statusColor(booking.status)}>
+        {readable(booking.status)}
+      </Chip>
+      <Chip size="sm" variant="bordered" color={statusColor(booking.paymentStatus)}>
+        {readable(booking.paymentStatus)}
+      </Chip>
     </td>
   );
 }
