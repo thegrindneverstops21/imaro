@@ -4,6 +4,7 @@ import type { Queryable } from "../db/pool";
 import { rows } from "../db/pool";
 import type {
   BranchInput,
+  BranchCreateInput,
   BranchPatch,
   RoomInput,
   RoomPatch,
@@ -17,7 +18,7 @@ export const getBranch = async (id: number, db?: Queryable) =>
   (await rows(queries.GET_BRANCH, [id], db))[0] ?? null;
 
 export async function createBranch(input: BranchInput, db?: Queryable) {
-  const result = await rows(
+  const result = await rows<BranchInput & { id: number }>(
     queries.CREATE_BRANCH,
     [
       input.slug,
@@ -36,7 +37,22 @@ export async function createBranch(input: BranchInput, db?: Queryable) {
     ],
     db,
   );
-  return result[0];
+  return result[0]!;
+}
+
+export const listRoomTypes = () => rows(queries.LIST_ROOM_TYPES);
+
+export async function createBranchContent(id: number, input: BranchCreateInput, db: Queryable) {
+  for (const [order, image] of input.images.entries()) {
+    await rows(queries.CREATE_BRANCH_IMAGE, [id, image.url, image.alt, order], db);
+  }
+  for (const name of new Set(input.amenities)) {
+    await rows(queries.ENSURE_AMENITY, [name], db);
+    await rows(queries.ADD_BRANCH_AMENITY, [id, name], db);
+  }
+  for (const [order, policy] of input.policies.entries()) {
+    await rows(queries.CREATE_BRANCH_POLICY, [id, policy.type, policy.title, policy.body, order], db);
+  }
 }
 
 const branchPatchColumns: Record<keyof BranchPatch, string> = {

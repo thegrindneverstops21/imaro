@@ -15,19 +15,19 @@ const UPSERT_GOOGLE_USER = `
     SET name = EXCLUDED.name,
         google_id = EXCLUDED.google_id,
         role = CASE WHEN EXCLUDED.role = '${UserRole.Admin}' THEN '${UserRole.Admin}' ELSE users.role END
-  RETURNING id, name, email, role`;
+  RETURNING id, name, email, role, phone`;
 
-const USER_BY_ID = `SELECT id, name, email, role FROM users WHERE id = $1`;
+const USER_BY_ID = `SELECT id, name, email, role, phone FROM users WHERE id = $1`;
 
 // A local sign-up never takes over an existing email: the conflict is ignored so the route can report it.
 const INSERT_PASSWORD_USER = `
-  INSERT INTO users (name, email, password_hash, role)
-  VALUES ($1, lower($2), $3, $4)
+  INSERT INTO users (name, email, password_hash, role, phone)
+  VALUES ($1, lower($2), $3, $4, $5)
   ON CONFLICT (lower(email)) DO NOTHING
-  RETURNING id, name, email, role`;
+  RETURNING id, name, email, role, phone`;
 
 const PASSWORD_USER_BY_EMAIL = `
-  SELECT id, name, email, role, password_hash AS "passwordHash"
+  SELECT id, name, email, role, password_hash AS "passwordHash", phone
   FROM users
   WHERE lower(email) = lower($1)`;
 
@@ -50,8 +50,7 @@ export async function createPasswordUser(
   const [user] = await rows<SessionUser>(INSERT_PASSWORD_USER, [
     input.name,
     input.email,
-    input.passwordHash,
-    input.role,
+    input.passwordHash, input.role, input.phone ?? null,
   ]);
   return user ?? null;
 }

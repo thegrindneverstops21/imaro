@@ -14,14 +14,12 @@ export interface BranchSocial {
 }
 export const findProfile = async (id: number) =>
   (await rows<Profile>(sql.PROFILE, [id]))[0];
-export const updateProfile = async (id: number, patch: ProfilePatch) =>
-  (
-    await rows<Profile>(sql.UPDATE_PROFILE, [
-      id,
-      patch.name ?? null,
-      patch.phone ?? null,
-    ])
-  )[0];
+export async function updateProfile(id: number, patch: ProfilePatch) {
+  const values = [
+    id, patch.name, patch.phone,
+  ];
+  return (await rows<Profile>(sql.UPDATE_PROFILE, values))[0];
+}
 export const myBookings = (id: number) =>
   rows<{ reference: string }>(sql.MY_BOOKINGS, [id]);
 export const favourites = (id: number) => rows(sql.FAVOURITES, [id]);

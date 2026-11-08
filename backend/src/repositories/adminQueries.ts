@@ -11,6 +11,12 @@ const branchColumns = `id, slug, name, description, address, city, lat::float8 A
 
 export const LIST_BRANCHES = `SELECT ${branchColumns} FROM branches ORDER BY name`;
 
+export const LIST_ROOM_TYPES = `SELECT id AS "roomTypeId", name, capacity FROM room_types ORDER BY name`;
+export const CREATE_BRANCH_IMAGE = `INSERT INTO branch_images (branch_id,url,alt,sort_order) VALUES ($1,$2,$3,$4)`;
+export const ENSURE_AMENITY = `INSERT INTO amenities (name,scope) VALUES ($1,'hotel') ON CONFLICT (name) DO NOTHING`;
+export const ADD_BRANCH_AMENITY = `INSERT INTO branch_amenities (branch_id,amenity_id) SELECT $1,id FROM amenities WHERE name=$2 ON CONFLICT DO NOTHING`;
+export const CREATE_BRANCH_POLICY = `INSERT INTO policies (branch_id,type,title,body,sort_order) VALUES ($1,$2,$3,$4,$5)`;
+
 export const GET_BRANCH = `SELECT ${branchColumns} FROM branches WHERE id = $1`;
 
 export const CREATE_BRANCH = `INSERT INTO branches

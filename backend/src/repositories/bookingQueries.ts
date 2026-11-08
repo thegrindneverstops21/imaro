@@ -41,10 +41,11 @@ export const FREE_ROOM_IDS = `
 
 export const INSERT_BOOKING = `
   INSERT INTO bookings (reference, branch_id, user_id, guest_name, guest_email, guest_phone,
-    check_in, check_out, guests, special_requests, status, payment_status,
+    billing_address_line1, billing_address_line2, billing_city, billing_province,
+    billing_postal_code, billing_country, check_in, check_out, guests, special_requests, status, payment_status,
     access_token_hash, total_amount, hold_expires_at)
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-    '${BookingStatus.Held}', '${PaymentStatus.Unpaid}', $11, $12, $13)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+    $13, $14, $15, $16, '${BookingStatus.Held}', '${PaymentStatus.Unpaid}', $17, $18, $19)
   RETURNING id`;
 
 // One statement inserts every room, so the exclusion constraint sees them together.
@@ -57,6 +58,10 @@ const BOOKING_COLUMNS = `
   b.id, b.reference, b.user_id AS "userId",
   br.slug AS "branchSlug", br.name AS "branchName",
   b.guest_name AS "guestName", b.guest_email AS "guestEmail", b.guest_phone AS "guestPhone",
+  b.billing_address_line1 AS "billingAddressLine1",
+  b.billing_address_line2 AS "billingAddressLine2",
+  b.billing_city AS "billingCity", b.billing_province AS "billingProvince",
+  b.billing_postal_code AS "billingPostalCode", b.billing_country AS "billingCountry",
   to_char(b.check_in, 'YYYY-MM-DD') AS "checkIn",
   to_char(b.check_out, 'YYYY-MM-DD') AS "checkOut",
   b.guests, b.status, b.payment_status AS "paymentStatus",

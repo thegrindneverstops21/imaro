@@ -1,6 +1,6 @@
 export const PROFILE = `SELECT id,name,email,phone,role FROM users WHERE id=$1`;
 
-export const UPDATE_PROFILE = `UPDATE users SET name=COALESCE($2,name),phone=COALESCE($3,phone)
+export const UPDATE_PROFILE = `UPDATE users SET name=COALESCE($2,name), phone=COALESCE($3,phone)
   WHERE id=$1 RETURNING id,name,email,phone,role`;
 
 // A booking belongs to a guest if it is linked to their account OR was made with their email address while signed out.
