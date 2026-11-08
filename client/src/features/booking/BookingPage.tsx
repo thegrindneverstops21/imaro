@@ -1,3 +1,5 @@
+import { usePendingChanges } from "../../components/ui/NavigationGuard";
+import { Form } from "../../components/ui/Form";
 import { BookingLoading } from "./BookingLoading";
 
 
@@ -8,12 +10,13 @@ import { CheckoutSummary } from "./CheckoutSummary";
 
 
 import { Checkbox, Input, Textarea, Button } from "../../components/ui";
+import { useFeedback } from "../../components/ui/Feedback";
 
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 
 import { useDispatch, useSelector } from "react-redux";
@@ -28,7 +31,7 @@ import { json, request, message } from "../../lib/api";
 import type { Branch, CreatedBooking } from "../../types/api";
 
 
-import { clearGuestDraft, setGuestDraft, type RootState } from "../../app/store";
+import { clearGuestDraft, setGuestDraft, type GuestDraft, type RootState } from "../../app/store";
 
 
 import { rememberBookingToken } from "./bookingAccess";
@@ -38,9 +41,16 @@ import { rememberBookingToken } from "./bookingAccess";
 
 
 export function BookingPage() {
+  const { notify, confirm } = useFeedback();
+  const releaseGuard = usePendingChanges(true, {
+    title: "Leave your booking?",
+    message: "Your booking is not complete and no rooms have been held yet. Your guest draft stays available in this tab, but will be lost if you close or reload it.",
+    confirmLabel: "Leave booking", cancelLabel: "Continue booking",
+  });
 
 
   const { slug = "", roomType = "" } = useParams();
+  const location = useLocation();
 
 
   const stay = useSelector((state: RootState) => state.stay);
@@ -62,18 +72,34 @@ export function BookingPage() {
 
 
   const form = useSelector((state: RootState) => state.guestDraft);
+  const user = useSelector((state: RootState) => state.user);
 
 
   const dispatch = useDispatch();
 
 
-  const setForm = (draft: typeof form) => dispatch(setGuestDraft(draft));
+  const setForm = (draft: GuestDraft) => dispatch(setGuestDraft(draft));
+  const profileComplete = Boolean(
+    user?.name && user.email && user.phone,
+  );
+  const [editingGuest, setEditingGuest] = useState(!user || !profileComplete);
 
 
   const submitting = useRef(false);
 
 
   const [terms, setTerms] = useState(false);
+
+  useEffect(() => {
+    if (!user || form.guestName) return;
+    setForm({
+      ...form,
+      guestName: user.name,
+      guestEmail: user.email,
+      guestPhone: user.phone ?? "",
+    });
+    if (profileComplete) setEditingGuest(false);
+  }, [user, form.guestName, profileComplete]);
 
 
 
@@ -221,6 +247,7 @@ export function BookingPage() {
 
 
       setError("Please agree to the cancellation policy before continuing.");
+      notify("warning", "Cancellation policy required", "Please agree to the cancellation policy before continuing.");
 
 
       return;
@@ -229,6 +256,7 @@ export function BookingPage() {
     }
 
 
+    if (!(await confirm({ title: "Hold these rooms?", message: "Create a temporary reservation for these guests and dates? You will review the final amount before payment. The hold expires after 15 minutes.", confirmLabel: "Create room hold", cancelLabel: "Keep editing" }))) return;
     submitting.current = true;
 
 
@@ -280,6 +308,8 @@ export function BookingPage() {
       dispatch(clearGuestDraft());
 
 
+      notify("success", "Reservation created.", "Your rooms are held temporarily while you review and pay.");
+      releaseGuard();
       navigate(`/review/${created.reference}`);
 
 
@@ -287,6 +317,7 @@ export function BookingPage() {
 
 
       setError(message(cause));
+      notify("error", "Could not place your booking", message(cause));
 
 
     } finally {
@@ -379,7 +410,7 @@ export function BookingPage() {
       <div className="checkout-layout">
 
 
-        <form
+        <Form
 
 
           className="checkout-form"
@@ -391,19 +422,18 @@ export function BookingPage() {
         >
 
 
-          <h1>Guest details</h1>
-
-
+          <h1>{user && !editingGuest ? "Confirm your guest details" : "Guest details"}</h1>
           <p>
-
-
-            We’ll hold these rooms for 15 minutes while you complete the next
-
-
-            step.
-
-
+            {user && !editingGuest
+              ? "Your account details are ready. Confirm the stay and continue to review and payment."
+              : "We’ll hold these rooms for 15 minutes while you complete the next step."}
           </p>
+          {!user && <p className="small-note">Already have an account? <Link to={`/login?next=${encodeURIComponent(location.pathname)}`}>Sign in to speed up checkout</Link>.</p>}
+          {user && profileComplete && !editingGuest && (
+            <button type="button" className="text-button" onClick={() => setEditingGuest(true)}>
+              Booking for someone else?
+            </button>
+          )}
 
 
           {error && (
@@ -421,7 +451,7 @@ export function BookingPage() {
           )}
 
 
-          <div className="form-grid">
+          {(editingGuest || !user) && <div className="form-grid">
 
 
             <Input
@@ -562,7 +592,7 @@ export function BookingPage() {
             />
 
 
-          </div>
+          </div>}
 
 
           {branch.policies?.length ? (
@@ -628,7 +658,7 @@ export function BookingPage() {
               isRequired
 
 
-              validationBehavior="native"
+              validationBehavior="aria"
 
 
               isSelected={terms}
@@ -690,7 +720,7 @@ export function BookingPage() {
           </Button>
 
 
-        </form>
+        </Form>
 
 
         <aside className="stay-summary" aria-label="Stay summary">
@@ -847,5 +877,3 @@ export function BookingPage() {
 
 
 }
-
-

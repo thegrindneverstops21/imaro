@@ -1,3 +1,4 @@
+import { SuccessBanner } from "../../components/ui/SuccessBanner";
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../../components/Icon";
 import type { Booking } from "../../types/api";
@@ -35,7 +36,9 @@ function ConfirmationView({
     <section className="page-shell narrow confirmation-shell guest-checkout">
       <BookingProgress current={CONFIRMATION_STEP} />
       <h1>{outcome.title}</h1>
-      <p className="confirmation-lead">{outcome.body}</p>
+      {booking.status === "confirmed" || booking.status === "completed" || (booking.status === "pending_approval" && booking.paymentStatus === "paid")
+        ? <SuccessBanner>{outcome.body}</SuccessBanner>
+        : <p className="confirmation-lead">{outcome.body}</p>}
       <BookingReceipt booking={booking}>
         <div className="receipt-actions">
           <button

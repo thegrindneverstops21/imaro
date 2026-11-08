@@ -1,7 +1,10 @@
+import { usePendingChanges } from "../../components/ui/NavigationGuard";
+import { SuccessBanner } from "../../components/ui/SuccessBanner";
 import { BookingLoading } from "./BookingLoading";
 import { BookingProgress } from "./BookingProgress";
 import { CheckoutSummary } from "./CheckoutSummary";
 import { HoldCountdown } from "./HoldCountdown";
+import { useFeedback } from "../../components/ui/Feedback";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../../components/Icon";
@@ -21,6 +24,7 @@ const UNSAVED_TOKEN =
   "This browser could not save your private manage token. Copy your access details below before you leave or close this page.";
 
 export function ReviewPage() {
+  const { notify, confirm } = useFeedback();
   const { reference = "" } = useParams();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,8 +57,15 @@ export function ReviewPage() {
   const expired = hold === "expired";
   const tokenUnsaved = Boolean(token) && !bookingTokenPersisted(reference);
 
+  const releaseGuard = usePendingChanges(hold === "active" || hold === "expiring", {
+    title: "Leave payment review?",
+    message: "Your reservation is still awaiting payment. Leaving does not cancel the room hold; it remains until it expires. You can return through Manage booking with your private access details.",
+    confirmLabel: "Leave payment review", cancelLabel: "Continue payment",
+  });
+
   async function pay() {
     if (submitting.current || !booking || booking.status !== "held" || booking.paymentStatus !== "unpaid" || holdState(booking.holdExpiresAt, Date.now()) === "expired") return;
+    if (!(await confirm({ title: "Continue to payment?", message: `Continue to PayFast for reservation ${reference}, with ${formatMoney(booking.balanceDue)} due? Hotel approval is still required after payment is verified.`, confirmLabel: "Continue to PayFast", cancelLabel: "Review booking" }))) return;
     submitting.current = true;
     setBusy(true);
     setError("");
@@ -67,9 +78,11 @@ export function ReviewPage() {
       if (latest.totalAmount !== booking.totalAmount || latest.balanceDue !== booking.balanceDue) {
         throw new Error("Your amount has changed. Review the updated total and balance before continuing to PayFast.");
       }
-      await redirectToPayfast(reference, token);
+      await redirectToPayfast(reference, token, releaseGuard);
     } catch (cause) {
-      setError(message(cause));
+      const text = message(cause);
+      setError(text);
+      notify("error", "Payment could not be started", text);
       submitting.current = false;
       setBusy(false);
     }
@@ -100,6 +113,7 @@ export function ReviewPage() {
         <div className="checkout-form">
           <h1>Review your stay.</h1>
           <p>Check your stay and the amount due before continuing to PayFast.</p>
+          {(hold === "active" || hold === "expiring") && <SuccessBanner>Your reservation has been created. Your rooms are temporarily held; payment and hotel approval are still required.</SuccessBanner>}
           {error && (
             <p className="form-error" role="alert">
               {error}

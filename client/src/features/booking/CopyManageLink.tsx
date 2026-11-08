@@ -1,3 +1,4 @@
+import { useFeedback } from "../../components/ui/Feedback";
 import { useState } from "react";
 
 type CopyState = "idle" | "copied" | "failed";
@@ -9,6 +10,7 @@ const MESSAGES: Record<Exclude<CopyState, "idle">, string> = {
 };
 
 export function CopyManageLink({ reference }: { reference: string }) {
+  const { notify } = useFeedback();
   const [state, setState] = useState<CopyState>("idle");
 
   async function copy() {
@@ -18,6 +20,7 @@ export function CopyManageLink({ reference }: { reference: string }) {
         new URL(path, window.location.origin).href,
       );
       setState("copied");
+      notify("success", MESSAGES.copied);
     } catch {
       setState("failed");
     }
@@ -29,7 +32,7 @@ export function CopyManageLink({ reference }: { reference: string }) {
         Copy manage link
       </button>
       {state !== "idle" && (
-        <span className="small-note" role="status">
+        <span className="small-note" role={state === "failed" ? "alert" : undefined}>
           {MESSAGES[state]}
         </span>
       )}

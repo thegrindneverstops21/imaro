@@ -1,6 +1,6 @@
 import { bookingHeaders, json, request } from "../../lib/api";
 
-export async function redirectToPayfast(reference: string, token: string) {
+export async function redirectToPayfast(reference: string, token: string, onRedirect?: () => void) {
   const payment = await request<{ actionUrl: string; fields: Record<string, string> }>(
     `/bookings/${encodeURIComponent(reference)}/payment`, { ...json("POST"), headers: bookingHeaders(token) },
   );
@@ -13,6 +13,7 @@ export async function redirectToPayfast(reference: string, token: string) {
     form.append(input);
   }
   document.body.append(form);
+  onRedirect?.();
   form.submit();
   form.remove();
 }

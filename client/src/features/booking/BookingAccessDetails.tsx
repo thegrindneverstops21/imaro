@@ -1,3 +1,4 @@
+import { useFeedback } from "../../components/ui/Feedback";
 import { useState } from "react";
 
 type CopyState = "" | "copied" | "failed";
@@ -14,6 +15,7 @@ export function BookingAccessDetails({
   reference: string;
   token: string;
 }) {
+  const { notify } = useFeedback();
   const [visible, setVisible] = useState(false);
   const [copyState, setCopyState] = useState<CopyState>("");
 
@@ -34,6 +36,7 @@ export function BookingAccessDetails({
     try {
       await navigator.clipboard.writeText(details);
       setCopyState("copied");
+      notify("success", COPIED);
     } catch {
       setCopyState("failed");
     }
@@ -76,7 +79,7 @@ export function BookingAccessDetails({
         </button>
       </div>
       {copyState && (
-        <p className="small-note" role="status">
+        <p className="small-note" role={copyState === "failed" ? "alert" : undefined}>
           {copyState === "copied" ? COPIED : FAILED}
         </p>
       )}

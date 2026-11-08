@@ -1,3 +1,5 @@
+import { SuccessBanner } from "../../components/ui/SuccessBanner";
+import { Form } from "../../components/ui/Form";
 import { useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../../components/Icon";
@@ -28,7 +30,7 @@ function LookupForm({ initialReference, loading, failed, onFind }: FormProps) {
   }
 
   return (
-    <form className="lookup-form print-hidden" onSubmit={submit}>
+    <Form className="lookup-form print-hidden" onSubmit={submit}>
       <label>
         Booking reference
         <input
@@ -53,7 +55,7 @@ function LookupForm({ initialReference, loading, failed, onFind }: FormProps) {
       <button className="button" disabled={loading}>
         {loading ? "Finding booking…" : failed ? "Try again" : "Find booking"}
       </button>
-    </form>
+    </Form>
   );
 }
 
@@ -121,9 +123,7 @@ export function ManagePage() {
         </p>
       )}
       {notice && (
-        <p className="inline-message" role="status">
-          {notice}
-        </p>
+        <SuccessBanner>{notice}</SuccessBanner>
       )}
       {actionError && (
         <p className="form-error" role="alert">
