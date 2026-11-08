@@ -18,9 +18,12 @@ function validDate(value: string) {
 }
 
 export function validateStay(stay: Stay, today = localToday()) {
+  if (!stay.checkIn) return "Please enter your check-in date.";
+  if (!stay.checkOut) return "Please enter your check-out date.";
   if (!validDate(stay.checkIn) || !validDate(stay.checkOut)) return "Choose valid check-in and check-out dates.";
   if (stay.checkIn < today) return "Check-in cannot be in the past.";
   if (stay.checkOut <= stay.checkIn) return "Check-out must be after check-in.";
+  if ((Date.parse(stay.checkOut) - Date.parse(stay.checkIn)) / 86400000 > 30) return "Please choose a stay of 30 nights or fewer.";
   if (!Number.isInteger(stay.guests) || stay.guests < 1 || stay.guests > 10) return "Choose between 1 and 10 guests.";
   if (!Number.isInteger(stay.rooms) || stay.rooms < 1 || stay.rooms > 5) return "Choose between 1 and 5 rooms.";
   return "";

@@ -1,3 +1,6 @@
+import { fallbackError, friendlyError } from "./errors";
+import type { PageMeta } from "../types/api";
+
 export const API_URL =
   (
     import.meta as ImportMeta & {
@@ -14,29 +17,46 @@ export class ApiError extends Error {
   }
 }
 
+async function send<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<{ data: T; meta: PageMeta | null }> {
+  let session: string | null = null;
+  try { session = localStorage.getItem("imaro.session"); } catch { /* Guest access remains available without storage. */ }
+  const headers = new Headers(options.headers);
+  if (options.body && !headers.has("content-type")) headers.set("content-type", "application/json");
+  if (session) headers.set("authorization", `Bearer ${session}`);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, { ...options, headers });
+  } catch (cause) {
+    if (options.signal?.aborted) throw cause;
+    throw new ApiError("Unable to connect. Please check your internet connection and try again.", 0);
+  }
+  const body = await response.json().catch(() => null) as {
+    data?: T;
+    meta?: PageMeta;
+    error?: { message?: string };
+  } | null;
+  if (!response.ok) throw new ApiError(friendlyError(body?.error?.message, response.status), response.status);
+  if (!body || body.data === undefined) throw new ApiError(fallbackError, response.status);
+  return { data: body.data, meta: body.meta ?? null };
+}
+
 export async function request<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const session = localStorage.getItem("imaro.session");
-  const headers = new Headers(options.headers);
-  if (options.body) headers.set("content-type", "application/json");
-  if (session) headers.set("authorization", `Bearer ${session}`);
+  return (await send<T>(path, options)).data;
+}
 
-  // fetch does not throw on 404/500 — we must check `response.ok` ourselves.
-  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
-  const body = (await response.json()) as {
-    data?: T;
-    error?: { message?: string };
-  };
-  if (!response.ok || body.data === undefined) {
-    throw new ApiError(
-      body.error?.message ??
-        "We could not complete that request. Please try again.",
-      response.status,
-    );
-  }
-  return body.data;
+// For paginated endpoints whose meta (total, ratingAverage) the page needs.
+export async function requestPage<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<{ data: T; meta: PageMeta | null }> {
+  return send<T>(path, options);
 }
 
 // Small helper so handlers read `request(path, json("POST", body))`.
@@ -49,7 +69,5 @@ export const bookingHeaders = (token: string): HeadersInit => ({
 });
 
 export function message(error: unknown) {
-  return error instanceof Error
-    ? error.message
-    : "Something went wrong. Please try again.";
+  return error instanceof ApiError ? error.message : friendlyError(error instanceof Error ? error.message : null);
 }
