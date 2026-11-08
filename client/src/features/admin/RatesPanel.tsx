@@ -1,4 +1,7 @@
+import { useDraftGuard, useNavigationGuard } from "../../components/ui/NavigationGuard";
+import { Form } from "../../components/ui/Form";
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "../../components/ui";
 import { formatMoney } from "../../lib/format";
 import type { Price, RoomTypeOption } from "./adminTypes";
 import { RoomTypeIdField } from "./RoomTypeIdField";
@@ -19,13 +22,14 @@ type FormProps = {
 };
 
 function RateForm({ input, types, busy, priceRef, onChange, onSubmit }: FormProps) {
+  useDraftGuard(input);
   function submit(event: FormEvent) {
     event.preventDefault();
     onSubmit();
   }
 
   return (
-    <form className="admin-inline-form" onSubmit={submit}>
+    <Form className="form-grid admin-modal-form" onSubmit={submit}>
       <RoomTypeIdField
         types={types}
         value={input.roomTypeId}
@@ -40,14 +44,15 @@ function RateForm({ input, types, busy, priceRef, onChange, onSubmit }: FormProp
           min="0"
           max={MAX_RATE}
           step="0.01"
+          placeholder="Enter nightly rate"
           value={input.pricePerNight}
           onChange={(event) => onChange({ ...input, pricePerNight: event.target.value })}
         />
       </label>
-      <button className="button" disabled={busy}>
+      <button className="button span-two" disabled={busy}>
         Save rate
       </button>
-    </form>
+    </Form>
   );
 }
 
@@ -92,34 +97,74 @@ function RateTable({ prices, onEdit, onRemove }: TableProps) {
 type Props = { branchId: string; inventory: BranchInventory; writes: Writes };
 
 export function RatesPanel({ branchId, inventory, writes }: Props) {
-  const [editing, setEditing] = useState(false);
+  const { confirmLeave } = useNavigationGuard();
+  const close = async () => { if (!writes.busy && await confirmLeave()) setOpen(false); };
+  const [open, setOpen] = useState(false);
   const [input, setInput] = useState(BLANK_RATE);
   const priceField = useRef<HTMLInputElement>(null);
   const { save, remove } = useRateActions(branchId, inventory.reload, writes);
 
-  useEffect(() => { if (editing) priceField.current?.focus(); }, [editing]);
+  useEffect(() => { if (open && input.roomTypeId) priceField.current?.focus(); }, [open, input.roomTypeId]);
 
   function edit(price: Price) {
-    setEditing(true);
     setInput({ roomTypeId: String(price.roomTypeId), pricePerNight: String(price.pricePerNight) });
-    priceField.current?.focus(); // the form sits above the table; move the user to it
+    setOpen(true);
+  }
+
+  async function submitRate() {
+    if (await save(input)) setOpen(false);
   }
 
   return (
     <div className="admin-panel">
-      <h2>Nightly rates</h2>
+      <div className="admin-panel-head">
+        <h2>Nightly rates</h2>
+        <button
+          className="button"
+          type="button"
+          onClick={() => {
+            setInput(BLANK_RATE);
+            setOpen(true);
+          }}
+        >
+          Add rate
+        </button>
+      </div>
       {inventory.loading && <p role="status">Loading nightly rates…</p>}
-      <details className="admin-create" open={editing} onToggle={(event) => setEditing(event.currentTarget.open)}>
-      <summary>Add or edit rate</summary>
-      <RateForm
-        input={input}
-        types={inventory.types}
-        busy={writes.busy}
-        priceRef={priceField}
-        onChange={setInput}
-        onSubmit={() => void save(input)}
-      />
-      </details>
+      <Modal
+        isDismissable={false}
+        isOpen={open}
+        onOpenChange={(open) => { if (!open) void close(); }}
+        placement="center" scrollBehavior="inside" classNames={{ base: "admin-modal" }}
+        size="lg"
+        shouldCloseOnInteractOutside={(element) =>
+          !element.closest(".modern-select-list, .modern-calendar")
+        }
+      >
+        <ModalContent>
+          <ModalHeader>
+            <div>
+              <h2>Nightly rate</h2>
+              <p>Set the price guests pay per night, VAT included.</p>
+            </div>
+          </ModalHeader>
+          <ModalBody className="admin-modal-body">
+            <RateForm
+              input={input}
+              types={inventory.types}
+              busy={writes.busy}
+              priceRef={priceField}
+              onChange={setInput}
+              onSubmit={() => void submitRate()}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <button type="button" className="button button-quiet" onClick={() => void close()}>
+              Cancel
+            </button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
       <RateTable prices={inventory.prices} onEdit={edit} onRemove={(price) => void remove(price)} />
     </div>
   );

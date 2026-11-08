@@ -1,71 +1,12 @@
-import { useState, type FormEvent } from "react";
+import { useDraftGuard, useNavigationGuard } from "../../components/ui/NavigationGuard";
+import { Form } from "../../components/ui/Form";
+import { useState } from "react";
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "../../components/ui";
 import { displayBrand } from "../../lib/format";
 import type { Branch } from "../../types/api";
-import {
-  afterCreate,
-  BLANK_BRANCH,
-  BRANCH_FIELDS,
-  fieldType,
-  type BranchField,
-  type BranchInput,
-} from "./branchForm";
-import { RecordEditor } from "./RecordEditor";
+import { BranchCreateForm } from "./BranchCreateForm";
 import type { Writes } from "./useAdminWrites";
 import { useBranchActions, type BranchEdit } from "./useBranchActions";
-
-type FieldProps = {
-  field: (typeof BRANCH_FIELDS)[number];
-  value: string;
-  onChange: (key: BranchField, value: string) => void;
-};
-
-function BranchFieldInput({ field, value, onChange }: FieldProps) {
-  const { key, label } = field;
-  const wide = key === "description" || key === "address";
-  return (
-    <label className={wide ? "span-two" : ""}>
-      {label}
-      {key === "description" ? (
-        <textarea required rows={4} value={value} onChange={(event) => onChange(key, event.target.value)} />
-      ) : (
-        <input
-          required
-          type={fieldType(key)}
-          step={key === "lat" || key === "lng" ? "any" : undefined}
-          value={value}
-          onChange={(event) => onChange(key, event.target.value)}
-        />
-      )}
-    </label>
-  );
-}
-
-type CreateProps = { busy: boolean; onCreate: (input: BranchInput) => Promise<boolean> };
-
-function BranchCreateForm({ busy, onCreate }: CreateProps) {
-  const [input, setInput] = useState(BLANK_BRANCH);
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (await onCreate(input)) setInput(afterCreate(input));
-  }
-
-  return (
-    <form className="form-grid" onSubmit={(event) => void submit(event)}>
-      {BRANCH_FIELDS.map((field) => (
-        <BranchFieldInput
-          key={field.key}
-          field={field}
-          value={input[field.key]}
-          onChange={(key, value) => setInput({ ...input, [key]: value })}
-        />
-      ))}
-      <button className="button" disabled={busy}>
-        Create branch
-      </button>
-    </form>
-  );
-}
 
 type EditorProps = {
   edit: BranchEdit;
@@ -76,22 +17,58 @@ type EditorProps = {
 };
 
 function BranchEditor({ edit, busy, onChange, onSave, onDiscard }: EditorProps) {
+  useDraftGuard(edit);
+  const { confirmLeave } = useNavigationGuard();
+  async function discard() { if (!busy && await confirmLeave()) onDiscard(); }
   return (
-    <RecordEditor title="Edit branch" busy={busy} onSubmit={onSave} onDiscard={onDiscard}>
-      <label>
-        Branch name
-        <input required value={edit.name} onChange={(event) => onChange({ ...edit, name: event.target.value })} />
-      </label>
-      <label>
-        Description
-        <textarea
-          required
-          rows={4}
-          value={edit.description}
-          onChange={(event) => onChange({ ...edit, description: event.target.value })}
-        />
-      </label>
-    </RecordEditor>
+    <Modal
+      isOpen
+      onOpenChange={(open) => {
+        if (!open) void discard();
+      }}
+      placement="center" scrollBehavior="inside" classNames={{ base: "admin-modal" }}
+      size="lg"
+    >
+      <ModalContent>
+        <ModalHeader>
+          <div>
+            <h2>Edit branch</h2>
+            <p>Update the property’s public details.</p>
+          </div>
+        </ModalHeader>
+        <ModalBody className="admin-modal-body">
+          <Form
+            className="form-grid"
+            onSubmit={(event) => {
+              event.preventDefault();
+              onSave();
+            }}
+          >
+            <label>
+              Branch name
+              <input required value={edit.name} onChange={(event) => onChange({ ...edit, name: event.target.value })} />
+            </label>
+            <label className="span-two">
+              Description
+              <textarea
+                required
+                rows={4}
+                value={edit.description}
+                onChange={(event) => onChange({ ...edit, description: event.target.value })}
+              />
+            </label>
+            <button className="button" disabled={busy}>
+              {busy ? "Saving…" : "Save changes"}
+            </button>
+          </Form>
+        </ModalBody>
+        <ModalFooter>
+          <button type="button" className="button button-quiet" onClick={() => void discard()}>
+            Cancel
+          </button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }
 
@@ -147,10 +124,14 @@ type Props = {
   branches: Branch[];
   reload: (preferredSlug?: string) => Promise<void>;
   writes: Writes;
+  onCreated: (slug: string) => void;
 };
 
-export function BranchesPanel({ branches, reload, writes }: Props) {
+export function BranchesPanel({ branches, reload, writes, onCreated }: Props) {
+  const { confirmLeave, clear } = useNavigationGuard();
+  const closeCreate = async () => { if (!writes.busy && await confirmLeave()) setCreating(false); };
   const actions = useBranchActions(reload, writes);
+  const [creating, setCreating] = useState(false);
 
   return (
     <div className="admin-panel">
@@ -164,15 +145,47 @@ export function BranchesPanel({ branches, reload, writes }: Props) {
           onDiscard={() => actions.setEdit(null)}
         />
       )}
-      <h2>Branches</h2>
-      <details className="admin-create">
-      <summary>Add branch</summary>
-      <p>
-        Add the property’s verified contact and location details. Existing branches can be updated
-        or unpublished.
-      </p>
-      <BranchCreateForm busy={writes.busy} onCreate={actions.create} />
-      </details>
+      <div className="admin-panel-head">
+        <h2>Branches</h2>
+        <button className="button" type="button" onClick={() => setCreating(true)}>
+          Add branch
+        </button>
+      </div>
+      <Modal
+        isOpen={creating}
+        isDismissable={false}
+        onOpenChange={(open) => { if (!open) void closeCreate(); }}
+        placement="center" scrollBehavior="inside" classNames={{ base: "admin-modal" }}
+        size="2xl"
+        shouldCloseOnInteractOutside={(element) =>
+          !element.closest(".modern-select-list, .modern-calendar")
+        }
+      >
+        <ModalContent>
+          <ModalHeader>
+            <div>
+              <h2>Add branch</h2>
+              <p>Add contact details you have checked, then set up rooms and prices.</p>
+            </div>
+          </ModalHeader>
+          <ModalBody className="admin-modal-body">
+            <BranchCreateForm
+              key={String(creating)}
+              busy={writes.busy}
+              onCreate={async (input) => {
+                const created = await actions.create(input);
+                if (created) { clear(); setCreating(false); onCreated(input.slug.trim()); }
+                return created;
+              }}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <button type="button" className="button button-quiet" onClick={() => void closeCreate()}>
+              Cancel
+            </button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
       <BranchTable
         branches={branches}
         onEdit={({ id, name, description }) =>

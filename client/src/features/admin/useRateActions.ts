@@ -1,3 +1,4 @@
+import { formatMoney } from "../../lib/format";
 import { json } from "../../lib/api";
 import type { Price } from "./adminTypes";
 import type { Writes } from "./useAdminWrites";
@@ -16,7 +17,9 @@ export function useRateActions(branchId: string, reload: Reload, writes: Writes)
     writes.write({
       path: `${base}/${roomTypeId}`,
       options: json("PUT", { pricePerNight: Number(pricePerNight) }),
-      success: "Rate saved.",
+      success: `Nightly rate saved at ${formatMoney(Number(pricePerNight))}.`,
+      confirm: `Set the nightly rate to ${formatMoney(Number(pricePerNight))}, including VAT? New bookings will use this price.`,
+      confirmLabel: "Save nightly rate",
       refresh: reload,
     });
 
@@ -27,6 +30,8 @@ export function useRateActions(branchId: string, reload: Reload, writes: Writes)
       success: "Rate removed.",
       refresh: reload,
       confirm: REMOVE_RATE_WARNING,
+      confirmLabel: "Remove rate",
+      danger: true,
     });
 
   return { save, remove };

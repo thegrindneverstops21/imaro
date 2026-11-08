@@ -1,3 +1,6 @@
+import { useNavigationGuard } from "../../components/ui/NavigationGuard";
+import { Form } from "../../components/ui/Form";
+import { Select, SelectItem } from "../../components/ui";
 import { useState, type FormEvent } from "react";
 import { BOOKING_STATUSES, readable } from "./adminTypes";
 import { RecordEditor } from "./RecordEditor";
@@ -21,35 +24,43 @@ function ReservationFilters({ loading, onApply, onRefresh }: FiltersProps) {
   }
 
   return (
-    <form className="admin-filters" onSubmit={submit}>
-      <label>
-        Guest, email or reference
+    <Form className="admin-filters reservation-filters" onSubmit={submit}>
+      <label className="reservation-search">
+        Search reservations
         <input
+          type="search"
+          placeholder="Guest name, email or booking reference"
           value={draft.search}
           onChange={(event) => setDraft({ ...draft, search: event.target.value })}
         />
       </label>
-      <label>
-        Reservation status
-        <select
-          value={draft.status}
-          onChange={(event) => setDraft({ ...draft, status: event.target.value })}
-        >
-          <option value="">All statuses</option>
-          {BOOKING_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {readable(status)}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select
+        className="reservation-status heroui-control"
+        classNames={{ trigger: "reservation-status-trigger", label: "reservation-status-label", value: "reservation-status-value", popoverContent: "property-switcher-menu" }}
+        label="Status"
+        labelPlacement="outside"
+        selectedKeys={[draft.status || "all"]}
+        disallowEmptySelection
+        onSelectionChange={(keys) => {
+          if (keys === "all") return;
+          const key = [...keys][0];
+          if (key != null) setDraft({ ...draft, status: key === "all" ? "" : String(key) });
+        }}
+        listboxProps={{ classNames: { base: "property-menu-wrapper", list: "property-menu-list" }, itemClasses: { base: "property-switcher-option" } }}
+        popoverProps={{ offset: 8 }}
+      >
+        {["all", ...BOOKING_STATUSES].map((status) => {
+          const title = status === "all" ? "All statuses" : readable(status).replace(/^./, (letter) => letter.toUpperCase());
+          return <SelectItem key={status} textValue={title}>{title}</SelectItem>;
+        })}
+      </Select>
       <button className="button" disabled={loading}>
         Apply filters
       </button>
-      <button type="button" className="text-button" onClick={onRefresh}>
+      <button type="button" className="reservation-refresh" disabled={loading} onClick={onRefresh}>
         Refresh
       </button>
-    </form>
+    </Form>
   );
 }
 
@@ -62,15 +73,15 @@ type PagerProps = {
 
 function Pager({ page, loading, hasNext, onPage }: PagerProps) {
   return (
-    <div className="table-pagination">
+    <nav className="table-pagination reservation-pagination" aria-label="Reservation pages">
       <button disabled={loading || page === 0} onClick={() => onPage(page - 1)}>
         Previous page
       </button>
-      <span>Page {page + 1}</span>
+      <span aria-live="polite">Page {page + 1}</span>
       <button disabled={loading || !hasNext} onClick={() => onPage(page + 1)}>
         Next page
       </button>
-    </div>
+    </nav>
   );
 }
 
@@ -84,7 +95,7 @@ type EditorProps = {
 
 function DatesEditor({ edit, busy, onChange, onSave, onDiscard }: EditorProps) {
   return (
-    <RecordEditor
+    <RecordEditor value={edit}
       title={`Change dates · ${edit.reference}`}
       busy={busy}
       onSubmit={onSave}
@@ -116,6 +127,7 @@ function DatesEditor({ edit, busy, onChange, onSave, onDiscard }: EditorProps) {
 type Props = { branchId: string; writes: Writes };
 
 export function ReservationsPanel({ branchId, writes }: Props) {
+  const { confirmLeave } = useNavigationGuard();
   const list = useReservations(branchId);
   const actions = useReservationActions(branchId, list.reload, writes);
 
@@ -152,8 +164,9 @@ export function ReservationsPanel({ branchId, writes }: Props) {
           actions={{
             onApprove: actions.approve,
             onCancel: actions.cancel,
-            onModify: ({ reference, checkIn, checkOut }) =>
-              actions.setEdit({ reference, checkIn, checkOut }),
+            onModify: async ({ reference, checkIn, checkOut }) => {
+              if (await confirmLeave()) actions.setEdit({ reference, checkIn, checkOut });
+            },
           }}
         />
       )}

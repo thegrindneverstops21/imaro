@@ -10,7 +10,7 @@ export type Inventory = {
 
 const EMPTY: Inventory = { rooms: [], prices: [], types: [] };
 
-// The API has no room-type list, so known types are whatever rooms and rates mention.
+// Retained for consumers that combine room and price records.
 export function typeOptions(rooms: AdminRoom[], prices: Price[]): RoomTypeOption[] {
   const known = new Map<number, RoomTypeOption>();
   for (const room of rooms)
@@ -38,12 +38,13 @@ export function useBranchInventory(branchId: string) {
     setError("");
     try {
       const base = `/admin/branches/${branchId}`;
-      const [rooms, prices] = await Promise.all([
+      const [rooms, prices, types] = await Promise.all([
         request<AdminRoom[]>(`${base}/rooms`),
         request<Price[]>(`${base}/prices`),
+        request<RoomTypeOption[]>("/admin/room-types"),
       ]);
       if (id === latest.current) {
-        setInventory({ rooms, prices, types: typeOptions(rooms, prices) });
+        setInventory({ rooms, prices, types });
         setLoaded(true);
       }
     } catch (cause) {

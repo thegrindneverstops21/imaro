@@ -1,3 +1,5 @@
+import { useNavigationGuard } from "../../components/ui/NavigationGuard";
+import { SuccessBanner } from "../../components/ui/SuccessBanner";
 import { Select, SelectItem } from "../../components/ui";
 import { Icon } from "../../components/Icon";
 import { NotificationBell } from "../account/NotificationBell";
@@ -17,15 +19,17 @@ type HeadingProps = {
   branches: Branch[];
   selected: string;
   disabled: boolean;
+  title: string;
+  subtitle: string;
   onSelect: (id: string) => void;
 };
 
-function AdminHeading({ branches, selected, disabled, onSelect }: HeadingProps) {
+function AdminHeading({ branches, selected, disabled, title, subtitle, onSelect }: HeadingProps) {
   return (
     <div className="admin-heading">
       <div>
-        <h1>Hotel operations</h1>
-        <p>Your property, at a glance.</p>
+        <h1>{title}</h1>
+        <p>{subtitle}</p>
       </div>
       <Select
         className="property-switcher heroui-control"
@@ -125,6 +129,7 @@ function Readiness({
 }
 
 export function AdminPage({ onSignOut, userName }: { onSignOut: () => void; userName: string }) {
+  const { confirmLeave } = useNavigationGuard();
   const [params, setParams] = useSearchParams();
   const tab: Tab = TABS.find((item) => item.key === params.get("section"))?.key ?? "reservations";
   function setTab(next: Tab) {
@@ -132,13 +137,16 @@ export function AdminPage({ onSignOut, userName }: { onSignOut: () => void; user
   }
   const writes = useAdminWrites();
   const branches = useAdminBranches();
-  const inventory = useBranchInventory(branches.selected);
+  const setupSlug = params.get("setup");
+  const setupBranch = branches.branches.find((branch) => branch.slug === setupSlug);
+  const selectedId = setupSlug ? (setupBranch?.id ? String(setupBranch.id) : "") : branches.selected;
+  const inventory = useBranchInventory(selectedId);
   const selectedBranch = branches.branches.find(
-    (branch) => String(branch.id) === branches.selected,
+    (branch) => String(branch.id) === selectedId,
   );
   const errors = [writes.error, branches.error, inventory.error].filter(Boolean);
   const loadingInventory = inventory.loading && (tab === "rooms" || tab === "rates");
-  const common = { branchId: branches.selected, writes };
+  const common = { branchId: selectedId, writes };
 
   return (
     <section className="admin-dashboard">
@@ -166,9 +174,15 @@ export function AdminPage({ onSignOut, userName }: { onSignOut: () => void; user
         <div className="page-shell admin-shell">
       <AdminHeading
         branches={branches.branches}
-        selected={branches.selected}
+        selected={selectedId}
         disabled={writes.busy}
-        onSelect={branches.select}
+        title={TABS.find((item) => item.key === tab)?.title ?? "Hotel operations"}
+        subtitle={selectedBranch ? `${displayBrand(selectedBranch.name)} · ${selectedBranch.city}` : "Select a property to manage."}
+        onSelect={async (id) => {
+          if (!(await confirmLeave())) return;
+          branches.select(id);
+          setParams((current) => { const query = new URLSearchParams(current); query.delete("setup"); return query; });
+        }}
       />
       {errors.map((error) => (
         <p key={error} className="form-error" role="alert">
@@ -176,23 +190,38 @@ export function AdminPage({ onSignOut, userName }: { onSignOut: () => void; user
         </p>
       ))}
       {writes.notice && (
-        <p className="inline-message" role="status">
-          {writes.notice}
-        </p>
+        <SuccessBanner>{writes.notice}</SuccessBanner>
       )}
+      {setupSlug && <section className="admin-readiness" aria-labelledby="branch-setup-title">
+        <div><h2 id="branch-setup-title">Add rooms and prices</h2>
+          <p>Step 2 of 2{setupBranch ? ` · ${displayBrand(setupBranch.name)}` : ""}. Add room numbers, choose their types and set nightly prices in ZAR. Capacity comes from the room type; maintenance rooms cannot be booked.</p>
+          <p>When ready, return to Branches to publish your draft. Publishing alone does not make rooms bookable.</p>
+        </div>
+        <button type="button" className="button button-quiet" disabled={writes.busy} onClick={() => {
+          if (selectedId) branches.select(selectedId);
+          setParams((current) => { const query = new URLSearchParams(current); query.delete("setup"); query.set("section", "branches"); return query; });
+        }}>Finish setup · View branches</button>
+        {inventory.error && <button type="button" className="text-button" onClick={() => void inventory.reload()}>Retry rooms and prices</button>}
+        {!setupBranch && <button type="button" className="text-button" onClick={() => void branches.reload(setupSlug)}>Reload the new branch</button>}
+      </section>}
       <Readiness branch={selectedBranch} inventory={inventory} onSelect={setTab} />
       <div className="admin-overview" aria-label="Selected property overview">
-        <div><span>Active rooms</span><strong>{inventory.loading || !inventory.loaded ? "—" : inventory.rooms.filter((room) => room.status === "active").length}</strong><small>In this property's inventory</small></div>
+        <div><span>Rooms on file</span><strong>{inventory.loading || !inventory.loaded ? "—" : inventory.rooms.length}</strong><small>Total room records for this property</small></div>
         <div><span>Rooms in maintenance</span><strong>{inventory.loading || !inventory.loaded ? "—" : inventory.rooms.filter((room) => room.status === "maintenance").length}</strong><small>Unavailable for allocation</small></div>
-        <div><span>Room types with rates</span><strong>{inventory.loading || !inventory.loaded ? "—" : inventory.prices.length}</strong><small>Nightly pricing configured</small></div>
+        <div><span>Priced room types</span><strong>{inventory.loading || !inventory.loaded ? "—" : inventory.prices.length}</strong><small>Room types with nightly rates set</small></div>
         <div><span>Guest visibility</span><strong className="admin-visibility">{selectedBranch ? selectedBranch.isPublished === false ? "Unpublished" : "Published" : "—"}</strong><small>{selectedBranch?.city ?? "Select a property"}</small></div>
       </div>
-      <fieldset className="admin-workspace" disabled={writes.busy || loadingInventory}>
+      <fieldset className="admin-workspace" disabled={writes.busy || loadingInventory || Boolean(setupSlug && (!selectedId || !inventory.loaded))}>
         {tab === "reservations" && <ReservationsPanel {...common} />}
-        {tab === "rooms" && <RoomsPanel key={branches.selected} {...common} inventory={inventory} />}
-        {tab === "rates" && <RatesPanel key={branches.selected} {...common} inventory={inventory} />}
+        {tab === "rooms" && <>
+          <RoomsPanel key={selectedId} {...common} inventory={inventory} />
+          {setupSlug && <RatesPanel key={`rates-${selectedId}`} {...common} inventory={inventory} />}
+        </>}
+        {tab === "rates" && <RatesPanel key={selectedId} {...common} inventory={inventory} />}
         {tab === "branches" && (
-          <BranchesPanel branches={branches.branches} reload={branches.reload} writes={writes} />
+          <BranchesPanel branches={branches.branches} reload={branches.reload} writes={writes} onCreated={(slug) => {
+            setParams((current) => { const query = new URLSearchParams(current); query.set("section", "rooms"); query.set("setup", slug); return query; });
+          }} />
         )}
       </fieldset>
         </div>

@@ -18,8 +18,10 @@ export function useBranchActions(
     writes.write({
       path: "/admin/branches",
       options: json("POST", toBranchPayload(input)),
-      success: "Branch created.",
-      refresh: () => reload(input.slug),
+      success: `${input.name} created.`,
+      confirm: `Create ${input.name} ${input.isPublished ? "as a published property visible to guests" : "as a draft hidden from guests"}? Rooms and prices are configured next.`,
+      confirmLabel: "Create branch",
+      refresh: () => reload(input.slug.trim()),
     });
 
   const publish = (branch: Branch) =>
@@ -28,6 +30,8 @@ export function useBranchActions(
       options: json("PATCH", { isPublished: true }),
       success: `${branch.name} published.`,
       refresh: reload,
+      confirm: `Publish ${branch.name}? It will become visible to guests.`,
+      confirmLabel: "Publish",
     });
 
   const unpublish = (branch: Branch) =>
@@ -37,6 +41,8 @@ export function useBranchActions(
       success: `${branch.name} unpublished.`,
       refresh: reload,
       confirm: UNPUBLISH_WARNING,
+      confirmLabel: "Unpublish",
+      danger: true,
     });
 
   async function saveEdit() {
@@ -44,7 +50,9 @@ export function useBranchActions(
     const saved = await writes.write({
       path: `/admin/branches/${edit.id}`,
       options: json("PATCH", { name: edit.name, description: edit.description }),
-      success: "Changes saved.",
+      success: `${edit.name} updated.`,
+      confirm: `Save the updated name and description for ${edit.name}? Published property details are visible to guests.`,
+      confirmLabel: "Save branch",
       refresh: reload,
     });
     if (saved) setEdit(null);

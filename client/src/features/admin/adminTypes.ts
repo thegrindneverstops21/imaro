@@ -13,7 +13,7 @@ export type Price = {
   pricePerNight: number;
 };
 
-export type RoomTypeOption = { roomTypeId: number; name: string };
+export type RoomTypeOption = { roomTypeId: number; name: string; capacity?: number };
 
 export type Tab = "reservations" | "rooms" | "rates" | "branches";
 

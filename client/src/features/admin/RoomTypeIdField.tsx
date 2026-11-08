@@ -1,4 +1,3 @@
-import { useId } from "react";
 import type { RoomTypeOption } from "./adminTypes";
 
 type Props = {
@@ -8,28 +7,15 @@ type Props = {
 };
 
 export function RoomTypeIdField({ types, value, onChange }: Props) {
-  const listId = useId();
   const match = types.find((type) => String(type.roomTypeId) === value);
-  return (
-    <label>
-      Room type
-      {types.length > 0 ? <select required value={value} onChange={(event) => onChange(event.target.value)}>
-        <option value="">Choose a room type</option>
-        {types.map((type) => <option key={type.roomTypeId} value={type.roomTypeId}>{type.name}</option>)}
-      </select> : <input
-        list={listId}
-        type="number"
-        required
-        min="1"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />}
-      <datalist id={listId}>
-        {types.map((type) => (
-          <option key={type.roomTypeId} value={type.roomTypeId} label={type.name} />
-        ))}
-      </datalist>
-      <small>{match ? match.name : types.length ? "Choose the category for this room." : "No categories are available for this property yet. Enter a known category ID to set up its first room or rate."}</small>
-    </label>
-  );
+  return <label className="room-type-field">
+    Room type
+    <select required value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="">Choose a room type</option>
+      {types.map((type) => <option key={type.roomTypeId} value={type.roomTypeId}>
+        {type.name}{type.capacity ? ` · Up to ${type.capacity} guests` : ""}
+      </option>)}
+    </select>
+    <small>{match?.capacity ? `Capacity: ${match.capacity} guests per room.` : types.length ? "Choose the category for this room or rate." : "No room types are available. Ask your administrator to configure the room-type catalogue."}</small>
+  </label>;
 }

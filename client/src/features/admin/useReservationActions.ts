@@ -16,9 +16,13 @@ export function useReservationActions(branchId: string, reload: Reload, writes: 
     writes.write({
       path: `/admin/bookings/${encodeURIComponent(reference)}/${action}`,
       options: json("POST"),
-      success: `Reservation ${reference} updated.`,
+      success: `Reservation ${reference} ${action === "approve" ? "approved" : "cancelled"}.`,
       refresh: reload,
-      ...(action === "cancel" && { confirm: `Cancel reservation ${reference}?` }),
+      confirm: action === "cancel"
+        ? `Cancel reservation ${reference}? Assigned rooms will be released and the cancellation terms will apply. Recorded refund amounts do not mean money has been returned by the payment provider.`
+        : `Approve reservation ${reference}? The guest’s stay will be confirmed.`,
+      confirmLabel: action === "cancel" ? "Cancel reservation" : "Approve reservation",
+      danger: action === "cancel",
     });
 
   async function saveDates() {
@@ -27,8 +31,10 @@ export function useReservationActions(branchId: string, reload: Reload, writes: 
     const saved = await writes.write({
       path: `/admin/bookings/${encodeURIComponent(reference)}`,
       options: json("PATCH", { checkIn, checkOut }),
-      success: "Changes saved.",
+      success: `Reservation ${reference} dates updated.`,
       refresh: reload,
+      confirm: `Change dates for reservation ${reference} to ${checkIn} → ${checkOut}?`,
+      confirmLabel: "Save new dates",
     });
     if (saved) setEdit(null);
   }
