@@ -1,5 +1,4 @@
 import type { Ref } from "react";
-import { Icon } from "../../components/Icon";
 
 type HeroSectionProps = {
   image?: string;
@@ -17,7 +16,7 @@ export function HeroSection({ image, imageAlt, caption, heroRef }: HeroSectionPr
       <div className="hero-copy">
         <h1>Stay a<br />little longer.</h1>
         <p>Discover Imaro. Find your room, choose your dates, and make yourself at home.</p>
-        <a className="button" href="#book">Find your stay <Icon name="arrowDown" /></a>
+        <a className="button" href="#book">Find your stay</a>
       </div>
       <div className="hero-caption">{caption}</div>
     </section>

@@ -1,7 +1,8 @@
 import { Icon } from "../../components/Icon";
 import { useEffect, useRef, useState } from "react";
 import { Reveal } from "../../components/aceternity/Reveal";
-import { Select, SelectItem } from "../../components/ui";
+import { ModernSelect } from "../../components/ui/ModernSelect";
+import { ModernDatePicker } from "../../components/ui/ModernDatePicker";
 import { HeroSection } from "./HeroSection";
 import { RoomCard } from "./RoomCard";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -249,74 +250,48 @@ export function BrowsePage({
             setRetry((value) => value + 1);
           }}
         >
-          <Select
-            className="search-field heroui-control"
+          <ModernSelect
+            className="search-field"
             label="Location"
-            placeholder="Choose a location"
-            isDisabled={!locations.length}
-            selectedKeys={[active?.slug ?? ""]}
-            onSelectionChange={(keys) => {
-              if (keys === "all") return;
-              const key = keys.currentKey ?? [...keys][0];
-              if (key != null) setSelectedSlug(String(key));
-            }}
-          >
-            {locations.map((branch) => (
-              <SelectItem key={branch.slug}>{branch.city}</SelectItem>
-            ))}
-          </Select>
-          <label className="search-field">
-            Check in{" "}
-            <input
-              type="date"
-              value={draft.checkIn}
-              min={localToday()}
-              onChange={(event) => updateStay({ checkIn: event.target.value })}
-              required
-            />
-          </label>
-          <label className="search-field">
-            Check out{" "}
-            <input
-              type="date"
-              min={draft.checkIn ? nextDay(draft.checkIn) : localToday()}
-              value={draft.checkOut}
-              onChange={(event) => updateStay({ checkOut: event.target.value })}
-              required
-            />
-          </label>
-          <Select
-            className="search-field heroui-control"
+            value={active?.slug ?? ""}
+            disabled={!locations.length}
+            options={locations.map((branch) => ({ value: branch.slug, label: branch.city }))}
+            onChange={setSelectedSlug}
+          />
+          <ModernDatePicker
+            className="search-field"
+            label="Check in"
+            value={draft.checkIn}
+            min={localToday()}
+            onChange={(checkIn) => updateStay({ checkIn })}
+          />
+          <ModernDatePicker
+            className="search-field"
+            label="Check out"
+            value={draft.checkOut}
+            min={draft.checkIn ? nextDay(draft.checkIn) : localToday()}
+            onChange={(checkOut) => updateStay({ checkOut })}
+          />
+          <ModernSelect
+            className="search-field"
             label="Guests"
-            selectedKeys={[String(draft.guests)]}
-            onSelectionChange={(keys) => {
-              if (keys === "all") return;
-              const key = keys.currentKey ?? [...keys][0];
-              if (key != null) updateStay({ guests: Number(key) });
-            }}
-          >
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-              <SelectItem key={String(n)}>
-                {n} guest{n > 1 ? "s" : ""}
-              </SelectItem>
-            ))}
-          </Select>
-          <Select
-            className="search-field heroui-control"
+            value={String(draft.guests)}
+            options={Array.from({ length: 10 }, (_, i) => {
+              const n = i + 1;
+              return { value: String(n), label: `${n} guest${n > 1 ? "s" : ""}` };
+            })}
+            onChange={(value) => updateStay({ guests: Number(value) })}
+          />
+          <ModernSelect
+            className="search-field"
             label="Rooms"
-            selectedKeys={[String(draft.rooms)]}
-            onSelectionChange={(keys) => {
-              if (keys === "all") return;
-              const key = keys.currentKey ?? [...keys][0];
-              if (key != null) updateStay({ rooms: Number(key) });
-            }}
-          >
-            {Array.from({ length: 5 }, (_, i) => i + 1).map((n) => (
-              <SelectItem key={String(n)}>
-                {n} room{n > 1 ? "s" : ""}
-              </SelectItem>
-            ))}
-          </Select>
+            value={String(draft.rooms)}
+            options={Array.from({ length: 5 }, (_, i) => {
+              const n = i + 1;
+              return { value: String(n), label: `${n} room${n > 1 ? "s" : ""}` };
+            })}
+            onChange={(value) => updateStay({ rooms: Number(value) })}
+          />
           <button className="button" type="submit" disabled={loading}>
             {loading ? "Checking rooms…" : "Check availability"} <Icon name="arrowRight" />
           </button>
