@@ -1,5 +1,7 @@
 import { BookingLoading } from "./BookingLoading";
 import { BookingProgress } from "./BookingProgress";
+import { CheckoutSummary } from "./CheckoutSummary";
+import { HoldCountdown } from "./HoldCountdown";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../../components/Icon";
@@ -42,16 +44,17 @@ export function ReviewPage() {
   // A hold can run out while this page is open; show that state without waiting for another request to fail.
   useEffect(() => {
     if (booking?.status !== "held") return;
-    const timer = window.setInterval(() => setNow(Date.now()), 15_000);
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, [booking?.status]);
+  }, [booking?.status, booking?.holdExpiresAt]);
 
   const hold = booking?.status === "held" ? holdState(booking.holdExpiresAt, now) : "none";
   const expired = hold === "expired";
   const tokenUnsaved = Boolean(token) && !bookingTokenPersisted(reference);
 
   async function pay() {
-    if (submitting.current || !booking || booking.status !== "held" || booking.paymentStatus !== "unpaid" || expired) return;
+    if (submitting.current || !booking || booking.status !== "held" || booking.paymentStatus !== "unpaid" || holdState(booking.holdExpiresAt, Date.now()) === "expired") return;
     submitting.current = true;
     setBusy(true);
     setError("");
@@ -168,16 +171,18 @@ export function ReviewPage() {
           </Link>
         </div>
         <aside className="stay-summary">
-          <details className="checkout-summary" open>
-          <summary>Payment summary · {formatMoney(booking.balanceDue)} due</summary>
+          <CheckoutSummary title={<>Payment summary · {formatMoney(booking.balanceDue)} due</>}>
           <p>Booking reference</p>
           <h2>{booking.reference}</h2>
+          {booking.status === "held" && (
+            <HoldCountdown holdExpiresAt={booking.holdExpiresAt} now={now} />
+          )}
           {booking.status === "held" && <p>
             {expired
               ? "This hold has expired."
               : <>Held until {booking.holdExpiresAt
                 ? formatDateTime(booking.holdExpiresAt)
-                : "the hold expires"}.{hold === "expiring" ? " Only a few minutes remain." : ""}</>}
+                : "the hold expires"}.</>}
           </p>}
           <div className="summary-total">
             <span>Balance due</span>
@@ -190,7 +195,7 @@ export function ReviewPage() {
           <p className="small-note">
             Prices include VAT. Cancellation terms are set by the property.
           </p>
-          </details>
+          </CheckoutSummary>
         </aside>
       </div>
       {tokenUnsaved && (

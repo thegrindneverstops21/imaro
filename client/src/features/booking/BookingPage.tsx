@@ -1,6 +1,8 @@
 import { BookingLoading } from "./BookingLoading";
 import { BookingProgress } from "./BookingProgress";
+import { CheckoutSummary } from "./CheckoutSummary";
 import { Icon } from "../../components/Icon";
+import { Checkbox, Input, Textarea } from "../../components/ui";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -69,8 +71,11 @@ export function BookingPage() {
   // Creating the booking does NOT pay for it: the server places a 15-minute hold.
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current || !room?.canBook || !terms || !cancellationPolicy)
+    if (submitting.current || !room?.canBook || !cancellationPolicy) return;
+    if (!terms) {
+      setError("Please agree to the cancellation policy before continuing.");
       return;
+    }
     submitting.current = true;
     setBusy(true);
     setError("");
@@ -136,58 +141,52 @@ export function BookingPage() {
             </p>
           )}
           <div className="form-grid">
-            <label className="span-two">
-              Full name
-              <input
-                autoComplete="name"
-                required
-                maxLength={150}
-                value={form.guestName}
-                onChange={(e) =>
-                  setForm({ ...form, guestName: e.target.value })
-                }
-              />
-            </label>
-            <label>
-              Email address
-              <input
-                type="email"
-                autoComplete="email"
-                required
-                maxLength={254}
-                value={form.guestEmail}
-                onChange={(e) =>
-                  setForm({ ...form, guestEmail: e.target.value })
-                }
-              />
-            </label>
-            <label>
-              Mobile number
-              <input
-                type="tel"
-                autoComplete="tel"
-                required
-                minLength={5}
-                maxLength={40}
-                placeholder="+27"
-                value={form.guestPhone}
-                onChange={(e) =>
-                  setForm({ ...form, guestPhone: e.target.value })
-                }
-              />
-            </label>
-            <label className="span-two">
-              Special requests <small>Optional</small>
-              <textarea
-                rows={4}
-                maxLength={2000}
-                value={form.specialRequests}
-                onChange={(e) =>
-                  setForm({ ...form, specialRequests: e.target.value })
-                }
-                placeholder="Let the hotel know about anything that would make your stay more comfortable."
-              />
-            </label>
+            <Input
+              className="span-two heroui-control"
+              label="Full name"
+              autoComplete="name"
+              isRequired
+              maxLength={150}
+              value={form.guestName}
+              onValueChange={(value) => setForm({ ...form, guestName: value })}
+            />
+            <Input
+              className="heroui-control"
+              label="Email address"
+              type="email"
+              autoComplete="email"
+              isRequired
+              maxLength={254}
+              value={form.guestEmail}
+              onValueChange={(value) => setForm({ ...form, guestEmail: value })}
+            />
+            <Input
+              className="heroui-control"
+              label="Mobile number"
+              type="tel"
+              autoComplete="tel"
+              isRequired
+              minLength={5}
+              maxLength={40}
+              placeholder="+27"
+              value={form.guestPhone}
+              onValueChange={(value) => setForm({ ...form, guestPhone: value })}
+            />
+            <Textarea
+              className="span-two heroui-control"
+              label={
+                <>
+                  Special requests <small>Optional</small>
+                </>
+              }
+              minRows={3}
+              maxLength={2000}
+              value={form.specialRequests}
+              onValueChange={(value) =>
+                setForm({ ...form, specialRequests: value })
+              }
+              placeholder="Let the hotel know about anything that would make your stay more comfortable."
+            />
           </div>
           {branch.policies?.length ? (
             <section
@@ -208,18 +207,18 @@ export function BookingPage() {
             </section>
           ) : null}
           {cancellationPolicy ? (
-            <label className="terms-choice">
-              <input
-                type="checkbox"
-                required
-                checked={terms}
-                onChange={(e) => setTerms(e.target.checked)}
-              />
+            <Checkbox
+              isRequired
+              validationBehavior="native"
+              isSelected={terms}
+              onValueChange={setTerms}
+              className="terms-choice heroui-control"
+            >
               <span>
                 I understand this booking uses a temporary room hold and agree to{" "}
                 <a href="#cancellation-policy">the hotel’s cancellation policy</a>.
               </span>
-            </label>
+            </Checkbox>
           ) : (
             <p className="form-error" role="alert">
               Cancellation terms aren’t available for this stay, so we can’t
@@ -236,8 +235,7 @@ export function BookingPage() {
           </button>
         </form>
         <aside className="stay-summary" aria-label="Stay summary">
-          <details className="checkout-summary" open>
-          <summary>Your stay · {formatMoney(total)}</summary>
+          <CheckoutSummary title={<>Your stay · {formatMoney(total)}</>}>
           <h2>{displayBrand(branch.name)}</h2>
           <p>
             {branch.address}, {branch.city}
@@ -282,7 +280,7 @@ export function BookingPage() {
             <strong>{formatMoney(total)}</strong>
           </div>
           <Link className="text-button" to={`/room/${slug}/${roomType}`}>Change room or dates</Link>
-          </details>
+          </CheckoutSummary>
         </aside>
       </div>
     </section>

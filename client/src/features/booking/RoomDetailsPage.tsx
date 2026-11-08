@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Icon } from "../../components/Icon";
+import { RoomGallery } from "./RoomGallery";
 import { displayBrand, formatDate, formatMoney } from "../../lib/format";
 import { message, request } from "../../lib/api";
 import type { Branch } from "../../types/api";
@@ -13,7 +14,6 @@ export function RoomDetailsPage() {
   const navigate = useNavigate();
   const [branch, setBranch] = useState<Branch | null>(null);
   const [error, setError] = useState("");
-  const [imageIndex, setImageIndex] = useState(0);
   const [retry, setRetry] = useState(0);
 
   // Re-fetches when the room in the URL or the selected stay changes.
@@ -21,7 +21,6 @@ export function RoomDetailsPage() {
     const controller = new AbortController();
     setBranch(null);
     setError("");
-    setImageIndex(0);
     const query = new URLSearchParams({
       ...stay,
       guests: String(stay.guests),
@@ -57,13 +56,6 @@ export function RoomDetailsPage() {
   const total =
     room.totalPrice ??
     room.pricePerNight * (room.nights ?? 1) * room.roomsNeeded;
-  const image = room.images[imageIndex] ?? room.images[0];
-
-  // Wrapping with % makes prev/next loop from the last photo to the first.
-  const changeImage = (offset: number) =>
-    setImageIndex(
-      (current) => (current + offset + room.images.length) % room.images.length,
-    );
   return (
     <section className="page-shell room-detail-shell guest-browse guest-room">
       <div className="breadcrumbs">
@@ -75,50 +67,7 @@ export function RoomDetailsPage() {
       </div>
       <div className="room-detail-heading"><h1>{room.name}</h1><p>{room.description}</p></div>
       <div className="room-detail-layout">
-          <div className="room-gallery">
-            <div
-              className="room-detail-image"
-            >
-              {image ? <img className="room-gallery-main" src={image.url} alt={image.alt || room.name} /> : <p>Room photography is not available yet.</p>}
-              {room.images.length > 1 && (
-                <div className="room-gallery-controls">
-                  <button
-                    type="button"
-                    aria-label="Previous room image"
-                    onClick={() => changeImage(-1)}
-                  >
-                    <Icon name="arrowLeft" />
-                  </button>
-                  <span aria-live="polite" aria-atomic="true">
-                    {imageIndex + 1} / {room.images.length}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label="Next room image"
-                    onClick={() => changeImage(1)}
-                  >
-                    <Icon name="arrowRight" />
-                  </button>
-                </div>
-              )}
-            </div>
-            {room.images.length > 1 && (
-              <div className="room-gallery-thumbnails" aria-label="Room images">
-                {room.images.map((roomImage, index) => (
-                  <button
-                    type="button"
-                    key={roomImage.url}
-                    className={index === imageIndex ? "active" : ""}
-                    aria-label={`Show room image ${index + 1}`}
-                    aria-pressed={index === imageIndex}
-                    onClick={() => setImageIndex(index)}
-                  >
-                    <img src={roomImage.url} alt="" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <RoomGallery images={room.images} roomName={room.name} />
 
         <aside className="stay-summary">
           <h2>{displayBrand(branch.name)}</h2>

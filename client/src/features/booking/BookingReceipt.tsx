@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   balanceLine,
   displayBrand,
@@ -8,6 +8,7 @@ import {
   pluralize,
 } from "../../lib/format";
 import type { Booking } from "../../types/api";
+import { HoldCountdown } from "./HoldCountdown";
 
 const readable = (value: string) => value.replaceAll("_", " ");
 
@@ -46,13 +47,14 @@ function ReceiptRows({ booking }: { booking: Booking }) {
   );
 }
 
-function ReceiptNotes({ booking }: { booking: Booking }) {
+function ReceiptNotes({ booking, now }: { booking: Booking; now: number }) {
   const { holdExpiresAt, status, cancellation } = booking;
   return (
     <>
       {holdExpiresAt && status === "held" && (
         <p className="hold-note">
-          Room held until {formatDateTime(holdExpiresAt)}.
+          Room held until {formatDateTime(holdExpiresAt)}.{" "}
+          <HoldCountdown holdExpiresAt={holdExpiresAt} now={now} />
         </p>
       )}
       {cancellation && (
@@ -75,6 +77,15 @@ function ReceiptNotes({ booking }: { booking: Booking }) {
 type Props = { booking: Booking; children?: ReactNode };
 
 export function BookingReceipt({ booking, children }: Props) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (booking.status !== "held" || !booking.holdExpiresAt) return;
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [booking.status, booking.holdExpiresAt]);
+
   return (
     <article className="booking-receipt">
       <p className="print-only receipt-brand">Imaro Hotels · Reservation</p>
@@ -93,7 +104,7 @@ export function BookingReceipt({ booking, children }: Props) {
           .join(" · ")}
       </p>
       <ReceiptRows booking={booking} />
-      <ReceiptNotes booking={booking} />
+      <ReceiptNotes booking={booking} now={now} />
       {children}
     </article>
   );
