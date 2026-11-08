@@ -2,6 +2,12 @@
 
 5 November 2026. Guest-first, directly in the existing React app. Sprints are reviewable slices, not promises of calendar duration. Backend polish is deferred.
 
+## Current implementation status — 6 November 2026
+
+The original guest-first screens for Sprints 0–5 are implemented. The statuses and review files below describe their earlier checkpoints, not verification of today's HeroUI/motion changes. Sprint 6 release acceptance remains open. The subsequent [UI elevation work](ui-elevation-sprints.md) is partial and must not be described as fully complete.
+
+Latest source changes include URL-backed branch selection, CSS boundaries for HeroUI controls, mobile search wrapper selectors, required consent and a shared Review countdown/expiry clock. Receipt countdown wiring is still incomplete: `BookingReceipt` omits the required `now` prop. Current source was inspected without tests, builds or browser checks. Older 214-test/build results have not been rerun for this migration. PayFast checkout success is user-reported; public callback/ITN verification remains separate.
+
 ## Starting point
 
 The source audit found a working frontend structure that needs clearer page responsibilities and a more consistent visual language:
