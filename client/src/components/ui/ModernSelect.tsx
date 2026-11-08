@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Icon } from "../Icon";
 import { EASE } from "../../lib/motion";
@@ -21,30 +22,46 @@ type ModernSelectProps = {
 export function ModernSelect({ label, value, options, onChange, disabled, className }: ModernSelectProps) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const listId = useId();
+  const stopPortalPropagation = useCallback((node: HTMLUListElement | null) => {
+    node?.addEventListener("pointerdown", (event) => event.stopPropagation());
+  }, []);
   const selected = options.find((option) => option.value === value);
   const activeOption = options[activeIndex];
 
   useEffect(() => {
     if (!open) return;
     function onPointerDown(event: PointerEvent) {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Element;
+      if (target.closest?.(".modern-select-list")) return;
+      if (rootRef.current && !rootRef.current.contains(target)) setOpen(false);
     }
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
     }
+    function onScrollOrResize() {
+      setOpen(false);
+    }
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
+    window.addEventListener("scroll", onScrollOrResize, true);
+    window.addEventListener("resize", onScrollOrResize);
     return () => {
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", onScrollOrResize, true);
+      window.removeEventListener("resize", onScrollOrResize);
     };
   }, [open]);
 
   function openList() {
     if (disabled) return;
     setActiveIndex(Math.max(0, options.findIndex((option) => option.value === value)));
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (rect) setPos({ top: rect.bottom + 6, left: rect.left, width: rect.width });
     setOpen(true);
   }
 
@@ -89,23 +106,27 @@ export function ModernSelect({ label, value, options, onChange, disabled, classN
         aria-expanded={open}
         aria-controls={listId}
         disabled={disabled}
+        ref={triggerRef}
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={onTriggerKeyDown}
       >
         <span className="modern-select-value">{selected?.label ?? "Choose…"}</span>
         <Icon name="arrowDown" />
       </button>
-      <AnimatePresence>
-        {open && (
+      {open && pos && createPortal(
+        <AnimatePresence>
           <motion.ul
             id={listId}
             className="modern-select-list"
             role="listbox"
             aria-labelledby={`${listId}-label`}
+            style={{ position: "fixed", top: pos.top, left: pos.left, width: pos.width }}
+            ref={stopPortalPropagation}
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.18, ease: EASE }}
+            onPointerDown={(event) => event.stopPropagation()}
             onKeyDown={onListKeyDown}
           >
             {options.map((option, index) => (
@@ -122,8 +143,9 @@ export function ModernSelect({ label, value, options, onChange, disabled, classN
               </li>
             ))}
           </motion.ul>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   );
 }
