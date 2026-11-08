@@ -1,5 +1,20 @@
 # Imaro application state
 
+## Guest reviews — 8 November 2026
+
+- `GET /api/v1/reviews` returns all published reviews across branches (`{ data, meta: { total, ratingAverage, limit, offset } }`); each item includes rating, comment, first name only, branch slug/name, `helpfulCount`, and `reacted` for the signed-in viewer. `POST /api/v1/reviews/:id/reactions` requires sign-in and toggles the caller's "helpful" reaction (`{ reacted, helpfulCount }`).
+- New `review_reactions` table (one row per review per user) exists in `schema.sql` and `migration.sql`; run `npm run db:migrate` on existing databases. Review creation is unchanged: verified completed stays only, via `POST /bookings/:reference/review`.
+- Frontend: `client/src/features/reviews/ReviewsPage.tsx` at `/reviews` (nav and footer links), paginated 25 per page, star display, branch links to `/hotel?branch=`, and a Helpful toggle that sends signed-out users through `/login?next=/reviews`. `lib/api.ts` gained `requestPage` for endpoints whose `meta` is needed.
+
+## Registration and checkout update — 8 November 2026
+
+- The “Create an account” action on the sign-in screen opens a single-page modal instead of switching the page into a registration form. The modal uses a compact responsive grid and does not provide an internal scroll area.
+- Password registration now collects only full name, email, and an eight-character password, with Google as the primary alternative. Validation messages identify the field that needs attention.
+- User profiles expose name and optional phone only. Phone remains required when placing a booking, so it is collected then when an account does not already have one.
+- Authenticated room checkout pre-fills the account profile and skips the manual guest-detail form when complete. “Booking for someone else?” reopens the editable form. Signed-out guests retain the expanded form and a direct “Sign in to speed up checkout” option.
+- Legacy nullable billing-address columns remain in the database for compatibility, but signup, profile, and checkout no longer collect or require home address details.
+- Backend/client TypeScript checks passed after the simplification. Lint still reports unrelated pre-existing errors in image upload and admin validation files.
+
 ## Current source checkpoint — 6 November 2026
 
 This checkpoint supersedes older current-status summaries below. Historical test/build/browser results remain evidence for those earlier revisions only; they do not verify the latest component migration. This update inspected source only and ran no tests, builds or browser checks, following the user's usage preference.
@@ -206,3 +221,36 @@ See docs/design/sprint-6-review.md for current evidence and remaining acceptance
 
 ## Admin update — 8 November 2026
 Lists now lead the admin sections, with creation forms disclosed on demand and reservation details expandable. Section navigation uses the URL. Readiness waits for inventory success and hides when complete. Known room types display by name; new-branch category discovery remains limited by the API. See progress.md for implementation and manual verification limits.
+
+
+## Custom error handling — 8 November 2026
+
+- Added a shared React Form for every active guest, account, search, and staff form, including shared record editors. Native browser validation bubbles are disabled; accessible custom messages identify fields, focus invalid controls, and link errors to controls with aria-describedby. Validation covers required values, whitespace, email, phone, length/range/step constraints and stay date ordering/30-night limits, including custom calendar buttons.
+- Centralised API error presentation: known business errors have curated messages; unexpected server text, malformed responses, network failures and HTTP errors have safe actionable fallbacks. Sign-in query errors no longer display arbitrary URL text.
+- Reused the existing feedback provider for unhandled promise rejection notifications and added a page rendering error boundary with reload/booking-recovery actions. Added consistent form error styling. Existing API contracts and server validation remain unchanged.
+- Preserved prior uncommitted work. Per user request, no tests, lint, typecheck, builds or browser verification were run. Runtime behaviour and accessibility remain unverified.
+
+## Branch setup — 8 November 2026
+
+- Add branch now includes a gallery of image URLs/alt text, facilities, cancellation text, house rules, and a Published switch defaulting to draft. Slugs auto-fill from names until manually edited; coordinates have range limits and map-copy hints; stars are limited to 1–5; time inputs retain 14:00/10:00 defaults. Contact errors appear beside fields. Wording asks staff to check details without claiming system verification.
+- Branch creation validates and saves optional content in the existing related tables within one transaction. No schema changes are needed. Existing PATCH behavior is unchanged; the new content fields are currently available during creation.
+- Successful creation opens a branch-specific rooms-and-prices setup view. A new staff-only `/api/v1/admin/room-types` endpoint supplies the shared catalogue and capacity, including for empty branches. Room creation supports active/maintenance status. Rates remain per room type; actual availability remains date/booking-dependent. Drafts can be published from Branches after setup.
+- Cancellation text describes policy only; it does not alter financial cancellation rules. Existing guest endpoints supply the saved photos, amenities and policy text.
+- Source inspection only. Tests, lint, typechecks, builds, browser checks and database commands were skipped at the user's request. Updated the existing branch-form expectation to reflect draft-by-default; it was not run.
+
+Published control correction: Add Branch now uses a compact button-based switch with aria-checked, an associated label/hint, and a visible keyboard focus indicator, avoiding inherited full-width input styling. Runtime appearance remains unverified.
+
+
+## Consistent success feedback — 8 November 2026
+
+- Reused the global feedback provider for five-second success toasts, with hover/focus timer pauses, timer cleanup, explicit dismiss controls, Hugeicons and soft green styling. Toasts stay below navigation, respect the bottom safe area and are hidden when printing.
+- Added a shared accessible SuccessBanner for booking holds, server-confirmed stays/verified payments, cancellation, profile saves, published reviews, password recovery and availability subscriptions. Held reservations explicitly require payment and hotel approval; cancelled/expired bookings never receive payment-success styling.
+- Added missing toast feedback for booking creation, both clipboard actions, notification read updates and Google sign-in. Standardized sign-out and saved-location removal as successful actions. Staff messages identify room, branch, reservation action or saved nightly amount.
+- Successful staff saves remain successful if a subsequent refresh throws. Guest cancellation reports the accepted cancellation separately from a failed detail reload. Existing user changes were preserved.
+- Verification: targeted ESLint passed. Client TypeScript check passed after correcting the pre-existing shared Form event annotation to React SubmitEvent. No database tests, booking/payment writes or browser verification were performed; no preview was listening on the usual local ports. Responsive layout, screen-reader announcements and runtime toast timing still need browser verification.
+## Device photos and staff modal consistency — 8 November 2026
+
+- Branch photos now support device uploads alongside URLs. The staff-only raw upload endpoint accepts JPEG/PNG/WebP signatures, enforces a 5 MB limit, assigns random filenames, and stores files under configured `UPLOAD_DIR` (default `uploads/`, ignored by Git). Uploaded images are publicly served for guest galleries; alt text is still required when creating a branch. Partial batch failures retain completed uploads and present retry guidance.
+- Deployments must mount persistent storage at `UPLOAD_DIR`; this implementation does not provision cloud storage. Removed photos or abandoned forms do not delete uploaded files automatically.
+- Rooms and rates now use the shared modal form layout, full-width controls, normal-case labels/hints, consistent placeholder typography, and matching dialog widths. Outside-click dismissal is disabled for room/rate creation so interacting with native selection popups cannot dismiss the modal. Close, Cancel and Escape remain available. Branch creation also avoids outside-click dismissal during device file selection.
+- Tests, builds, lint, typechecks and browser verification were skipped per user preference. The modal fix and upload flow are implemented but not runtime-verified.

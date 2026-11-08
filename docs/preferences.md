@@ -43,3 +43,15 @@ The user's latest instructions take precedence over older design documents. Read
 - Build directly in React rather than starting with image mockups.
 - Follow the reviewable slices in docs/design/frontend-sprints.md.
 
+
+
+## Verification scope — 8 November 2026
+- For the application-wide error-handling refactor, the user requested saving tokens/credits and skipping tests and related verification runs. Report this limitation explicitly.
+
+
+## Success feedback — 8 November 2026
+- Use consistent custom success feedback throughout guest and staff flows: subtle green/checkmark styling, non-blocking auto-dismissing 3–5 second toasts for transient actions, and persistent banners or confirmation screens for major outcomes. Confirm accepted server actions without implying unverified payment or hotel approval.
+## Admin forms — 8 November 2026
+
+- Allow photos to be uploaded from a device as well as entered by URL.
+- Keep staff modal layout and placeholder styling consistent. Selecting a room must not dismiss its modal.

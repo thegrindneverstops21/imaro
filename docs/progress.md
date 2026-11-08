@@ -1,5 +1,20 @@
 # Imaro progress tracker
 
+## Guest reviews page — 8 November 2026
+
+- **Done (source):** New `/reviews` page lists reviews across all branches (newest first, paginated) with star rating, comment, reviewer first name, branch link, posting date, and average-rating summary. "Helpful" reactions toggle per signed-in user; signed-out visitors are sent to sign-in and returned to `/reviews`.
+- **Done (source):** New endpoints `GET /api/v1/reviews` (public, paginated, optional session marks `reacted`) and `POST /api/v1/reviews/:id/reactions` (requires sign-in, toggles). New `review_reactions` table added to `schema.sql` and `migration.sql`; reviews are still created only through the existing verified-stay `POST /bookings/:reference/review` flow.
+- **Verified:** `test/api/account.test.ts` passed (7 tests, including new list/reaction coverage); full `npm test` passed all API tests — 2 unrelated unit failures remain from the in-progress checkout refactor (`guestDraft`, `guestStay`). Targeted typecheck is clean for changed files; repo-wide typecheck/lint still fail on that same uncommitted work (`bookingView`, `guestDraft.test`, `imageUploadService`, `validation/admin`).
+- **Pending:** Browser verification of the reviews page and migration run against the development database (`npm run db:migrate`).
+
+## Registration and checkout refactor — 8 November 2026
+
+- **Done (source):** “Create an account” now opens a single-page, no-scroll modal with Google as the primary action and only full name, email, and password for email signup.
+- **Done (source):** Profile editing keeps name and optional phone; home-address fields are no longer accepted by registration or profile validation and are not rendered in checkout.
+- **Done (source):** Authenticated checkout pre-fills account data and offers an inline override; signed-out checkout offers sign-in or expanded guest entry.
+- **Verified:** `npm run typecheck` passed. The repository lint command remains blocked by unrelated existing complexity/magic-number errors in image upload and admin validation.
+- **Pending:** Focused API tests and browser verification of the new modal remain to be rerun after this simplification.
+
 Last updated: 6 November 2026.
 
 Use this file for task status and next steps. Use [application state](application-state.md) for implementation details and known limitations, and [preferences](preferences.md) for user decisions. Update all relevant records after each agreed step.
@@ -291,3 +306,49 @@ Scoped a list-margin/padding reset to the property dropdown and removed extra li
 
 ## Dropdown reference correction — 8 November 2026
 Added explicit HeroUI list/wrapper classes and reset actual ul indentation and margins. Compact full-width rows with warm selected state; replaced inherited thick outside focus ring with a thin inset keyboard indicator. Source inspection of installed HeroUI confirmed supported class slots. Browser appearance still requires verification; no tests/build run.
+
+
+## Reservations filter toolbar — 8 November 2026
+Aligned search, status and actions at 48px height with consistent corners and subtle surfaces. Added search placeholder and native search input; status uses the existing styled HeroUI menu with explicit text values and list padding reset. Refresh is a secondary button and disabled while loading. Explicit Apply behavior and API filtering preserved. Responsive grid stacks at narrow widths. Source/whitespace review only, no tests/build/browser verification.
+
+
+## Reservation table consistency — 8 November 2026
+Unified status badges with sentence-case text and muted semantic fills; expired/cancelled use neutral styling, unpaid remains amber. Added aligned numeric totals, clearer guest/reference hierarchy, warm row hover, matching detail buttons with expansion chevrons, column scopes and labelled pagination. Existing reservation actions unchanged. Source/whitespace review only; no tests/build/browser verification.
+
+
+## Reservation details modal — 8 November 2026
+View details now opens a compact HeroUI modal with guest/contact, dates, status and payment amounts instead of an expanded table row. Uses library focus management, Escape/backdrop dismissal and scrollable content. Existing approve/modify/cancel actions close the modal before invoking their existing flows. Source/whitespace review only; no tests/build/browser pass.
+
+
+## Reservation modal hierarchy — 8 November 2026
+Grouped modal into Guest, Stay and Payment sections. Sentence-case status badges sit beside their section headings; payment amounts align in rows and balance is emphasized. Removed container focus outline while retaining focus indicators on controls, softened icon close treatment and clarified Cancel reservation wording. Existing data/actions preserved. Source/whitespace review only; no tests/build/browser verification.
+
+
+## Custom error handling — 8 November 2026
+
+- Added a shared React Form for every active guest, account, search, and staff form, including shared record editors. Native browser validation bubbles are disabled; accessible custom messages identify fields, focus invalid controls, and link errors to controls with aria-describedby. Validation covers required values, whitespace, email, phone, length/range/step constraints and stay date ordering/30-night limits, including custom calendar buttons.
+- Centralised API error presentation: known business errors have curated messages; unexpected server text, malformed responses, network failures and HTTP errors have safe actionable fallbacks. Sign-in query errors no longer display arbitrary URL text.
+- Reused the existing feedback provider for unhandled promise rejection notifications and added a page rendering error boundary with reload/booking-recovery actions. Added consistent form error styling. Existing API contracts and server validation remain unchanged.
+- Preserved prior uncommitted work. Per user request, no tests, lint, typecheck, builds or browser verification were run. Runtime behaviour and accessibility remain unverified.
+
+## Branch creation and setup — 8 November 2026
+
+Completed implementation: draft/published choice; automatic editable slug; coordinate hints/ranges; star dropdown; time defaults; inline contact errors; photo URL/alt-text list; facilities and policy fields; transactional content persistence; and navigation to the new branch's rooms and prices. Added staff room-type catalogue with capacities and active/maintenance choice for new rooms. Reused existing rate and publication actions.
+
+No test/build/lint/typecheck/browser runs or database changes, as requested. Runtime and responsive/accessibility behavior remain unverified. New gallery/facility/policy editing is currently creation-only; the existing branch editor still edits name/description. Cancellation calculations remain independent of policy text.
+
+Published switch correction: replaced the checkbox affected by modal text-input styles with a compact, keyboard-accessible switch beside its label, retaining a 44px target and descriptive hint. No tests/build/browser checks run, per requested scope.
+
+
+## Consistent success feedback — 8 November 2026
+
+- Reused the global feedback provider for five-second success toasts, with hover/focus timer pauses, timer cleanup, explicit dismiss controls, Hugeicons and soft green styling. Toasts stay below navigation, respect the bottom safe area and are hidden when printing.
+- Added a shared accessible SuccessBanner for booking holds, server-confirmed stays/verified payments, cancellation, profile saves, published reviews, password recovery and availability subscriptions. Held reservations explicitly require payment and hotel approval; cancelled/expired bookings never receive payment-success styling.
+- Added missing toast feedback for booking creation, both clipboard actions, notification read updates and Google sign-in. Standardized sign-out and saved-location removal as successful actions. Staff messages identify room, branch, reservation action or saved nightly amount.
+- Successful staff saves remain successful if a subsequent refresh throws. Guest cancellation reports the accepted cancellation separately from a failed detail reload. Existing user changes were preserved.
+- Verification: targeted ESLint passed. Client TypeScript check passed after correcting the pre-existing shared Form event annotation to React SubmitEvent. No database tests, booking/payment writes or browser verification were performed; no preview was listening on the usual local ports. Responsive layout, screen-reader announcements and runtime toast timing still need browser verification.
+## Device photos and modal fixes — 8 November 2026
+
+Implemented device image uploads (JPEG/PNG/WebP, 5 MB per image, 20 photos per branch) with staff authorization, public image serving, random filenames, configured storage and friendly partial-failure feedback. URL entry remains available. Unified room/rate modal form styling and placeholder typography; disabled outside-dismiss behavior that can treat native select/file-picker interaction as a click outside the dialog.
+
+No verification commands or browser runs, as requested. Production needs a persistent `UPLOAD_DIR`; abandoned uploads currently remain on disk. No database migration or dependency installation was required.
