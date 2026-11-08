@@ -2,7 +2,7 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-DROP TABLE IF EXISTS availability_notifications, password_reset_tokens, notifications, favourites, reviews, payments, booking_rooms, bookings, policies, rooms, branch_room_types, room_type_images, room_type_amenities, branch_amenities, amenities, room_types, branch_images, branches, users CASCADE;
+DROP TABLE IF EXISTS availability_notifications, password_reset_tokens, notifications, favourites, review_reactions, reviews, payments, booking_rooms, bookings, policies, rooms, branch_room_types, room_type_images, room_type_amenities, branch_amenities, amenities, room_types, branch_images, branches, users CASCADE;
 
 -- ---------- Users ---------- 
 CREATE TABLE users (
@@ -12,6 +12,12 @@ CREATE TABLE users (
   google_id TEXT UNIQUE,
   password_hash TEXT,
   phone TEXT,
+  address_line1 TEXT,
+  address_line2 TEXT,
+  city TEXT,
+  province TEXT,
+  postal_code TEXT,
+  country TEXT,
   role TEXT NOT NULL DEFAULT 'guest' CHECK (role IN ('guest', 'admin')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -149,6 +155,12 @@ CREATE TABLE bookings (
   guest_name TEXT NOT NULL,
   guest_email TEXT NOT NULL,
   guest_phone TEXT NOT NULL,
+  billing_address_line1 TEXT,
+  billing_address_line2 TEXT,
+  billing_city TEXT,
+  billing_province TEXT,
+  billing_postal_code TEXT,
+  billing_country TEXT,
   check_in DATE NOT NULL,
   check_out DATE NOT NULL,
   guests SMALLINT NOT NULL CHECK (guests > 0),
@@ -207,6 +219,14 @@ CREATE TABLE reviews (
   rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
   comment TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- One "helpful" reaction per signed-in user per review; the row's existence is the reaction.
+CREATE TABLE review_reactions (
+  review_id INT NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (review_id, user_id)
 );
 
 CREATE TABLE favourites (

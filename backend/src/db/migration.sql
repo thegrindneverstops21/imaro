@@ -14,6 +14,20 @@ CREATE TABLE IF NOT EXISTS availability_notifications (
   UNIQUE (branch_id, email)
 );
 
+ALTER TABLE users ADD COLUMN IF NOT EXISTS address_line1 TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS address_line2 TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS province TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS postal_code TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS country TEXT;
+
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS billing_address_line1 TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS billing_address_line2 TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS billing_city TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS billing_province TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS billing_postal_code TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS billing_country TEXT;
+
 INSERT INTO users (name, email, password_hash, role)
 VALUES (
   'Imaro Administrator',
@@ -22,3 +36,10 @@ VALUES (
   'admin'
 )
 ON CONFLICT (lower(email)) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS review_reactions (
+  review_id INT NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (review_id, user_id)
+);
