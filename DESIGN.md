@@ -37,3 +37,8 @@ Use docs/design/HOTEL_DESIGN_GUIDELINES.md as the product/design authority. This
 ## Booking state and recovery
 
 Guest input stays in Redux memory during room/date navigation; it is not persisted to browser storage and clears after a hold is created. Consent is requested again on return. Review re-fetches the reservation before payment and stops when status or amounts change. Payment return distinguishes server-confirmed, pending approval, expired and cancelled states. The shared numbered progress list marks the current step. Mobile payment summaries are collapsible, and confirmation has a print stylesheet.
+
+
+## Discovery refinement — 6 November 2026
+
+Search now sits below the hero without overlap or a floating shadow. Date and selection controls share an outlined rectangular treatment. Hero copy is visible immediately; the photograph retains its reduced-motion-aware arrival. Location tabs use an underline and room cards stay stationary. Current rendered verification is pending due to the local preview startup failure recorded in docs/progress.md.
