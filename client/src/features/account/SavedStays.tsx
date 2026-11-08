@@ -8,6 +8,7 @@ import { REMOVE_SAVED, SAVED_STAYS } from "../../lib/labels";
 import type { Branch } from "../../types/api";
 import { AccountState } from "./AccountState";
 import { useAccountData } from "./useAccountData";
+import { useFeedback } from "../../components/ui/Feedback";
 
 type CardProps = {
   branch: Branch;
@@ -38,10 +39,20 @@ function SavedCard({ branch, disabled, onRemove }: CardProps) {
 export function SavedStays() {
   const { data, error, reload } = useAccountData<Branch[]>("/me/favourites");
   const dispatch = useDispatch();
+  const { confirm, notify } = useFeedback();
   const [removing, setRemoving] = useState("");
   const [failure, setFailure] = useState("");
 
   async function remove(slug: string) {
+    const branch = (data ?? []).find((item) => item.slug === slug);
+    const approved = await confirm({
+      title: "Remove saved stay?",
+      message: `${branch ? displayBrand(branch.name) : "This property"} will be removed from your saved stays.`,
+      confirmLabel: "Remove saved stay",
+      cancelLabel: "Keep saved stay",
+      danger: true,
+    });
+    if (!approved) return;
     setRemoving(slug);
     setFailure("");
     try {
@@ -52,8 +63,11 @@ export function SavedStays() {
       const remaining = (data ?? []).filter((branch) => branch.slug !== slug);
       dispatch(setFavorites(remaining.map((branch) => branch.slug)));
       reload();
+      notify("success", "Saved stay removed.");
     } catch (cause) {
-      setFailure(message(cause));
+      const text = message(cause);
+      setFailure(text);
+      notify("error", "Could not remove saved stay", text);
     } finally {
       setRemoving("");
     }
