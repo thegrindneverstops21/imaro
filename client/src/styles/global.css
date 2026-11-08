@@ -2164,3 +2164,359 @@ html {
     transform: none;
   }
 }
+
+/* ---------- Custom form messages (all sections) ---------- */
+.form-error,
+.inline-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0;
+  padding: 13px 16px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.55;
+  border-left-width: 4px;
+}
+.form-error {
+  color: #8f3527;
+  background: #fdf2f0;
+  border-color: #f0d3cd;
+  border-left-color: var(--error);
+}
+.inline-message {
+  color: #33506e;
+  background: #eef3f8;
+  border-color: #d6e0ea;
+  border-left-color: #4a7ba6;
+}
+.form-error .button,
+.form-error .text-button {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+  padding: 12px 20px;
+  background: var(--ink);
+  color: #fffdf9;
+  font-size: 15px;
+}
+.search-hint {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #eef3f8;
+  color: #33506e;
+  font-size: 14px;
+}
+
+/* ---------- Custom feedback: toasts + confirm dialog ---------- */
+.feedback-toasts {
+  position: fixed;
+  z-index: 100;
+  right: 20px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, calc(100vw - 40px));
+  pointer-events: none;
+}
+.feedback-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #fffdf9;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 12px;
+  box-shadow: 0 16px 40px -18px rgba(16, 37, 59, 0.4);
+}
+.feedback-toast-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.feedback-toast-icon .ui-icon {
+  width: 20px;
+  height: 20px;
+}
+.feedback-toast-success { border-left-color: #3e7d54; }
+.feedback-toast-success .feedback-toast-icon { color: #3e7d54; }
+.feedback-toast-info { border-left-color: #4a7ba6; }
+.feedback-toast-info .feedback-toast-icon { color: #4a7ba6; }
+.feedback-toast-warning { border-left-color: #b07d2b; }
+.feedback-toast-warning .feedback-toast-icon { color: #b07d2b; }
+.feedback-toast-error { border-left-color: var(--error); }
+.feedback-toast-error .feedback-toast-icon { color: var(--error); }
+.feedback-toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.feedback-toast-body strong {
+  font-size: 15px;
+  color: var(--ink);
+}
+.feedback-toast-body span {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.feedback-toast-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.feedback-toast-close:hover {
+  background: #eeece6;
+  color: var(--ink);
+}
+.feedback-toast-close .ui-icon {
+  width: 15px;
+  height: 15px;
+}
+.feedback-confirm-message {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.feedback-confirm-danger {
+  background: #9d392e;
+  border-color: #9d392e;
+}
+.feedback-confirm-danger:hover:not(:disabled) {
+  background: #7d2d24;
+  border-color: #7d2d24;
+}
+
+/* ---------- Header grouping ---------- */
+.site-header {
+  justify-content: flex-start;
+  gap: clamp(20px, 3vw, 56px);
+}
+.site-header .account-actions {
+  margin-left: auto;
+}
+
+/* ---------- Policy accordions: card style + clear markers ---------- */
+.checkout-policies details {
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-bottom-width: 1px;
+  border-radius: 12px;
+  background: #fffdf9;
+  overflow: hidden;
+}
+.checkout-policies summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+.checkout-policies summary::-webkit-details-marker {
+  display: none;
+}
+.checkout-policies summary::after {
+  content: "+";
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--ink);
+  transition: transform 0.2s ease;
+}
+.checkout-policies details[open] summary::after {
+  content: "−";
+}
+.checkout-policies details p {
+  margin: 0;
+  padding: 0 18px 16px;
+}
+
+/* ---------- Policy accordion polish ---------- */
+.checkout-policies summary {
+  transition: background 0.15s ease;
+}
+.checkout-policies summary:hover {
+  background: #f6f4ee;
+}
+.checkout-policies summary:focus-visible {
+  outline: none;
+  background: #eef3f8;
+  box-shadow: inset 0 0 0 2px #4a7ba6;
+}
+.checkout-policies details p {
+  padding-bottom: 20px;
+}
+.checkout-policies details + details {
+  margin-top: 4px;
+}
+.checkout-policies summary::marker {
+  content: "";
+}
+
+/* ---------- Footer: columns, separator, copyright ---------- */
+.site-footer {
+  flex-wrap: wrap;
+  border-top: 1px solid #d6d2c9;
+}
+.footer-brand {
+  flex: 1 1 260px;
+}
+.footer-disclaimer {
+  flex: 0 1 300px;
+}
+.footer-columns {
+  display: flex;
+  gap: clamp(32px, 5vw, 72px);
+  flex: 2 1 480px;
+}
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.footer-col h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.footer-col a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.footer-col a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.footer-bottom {
+  flex-basis: 100%;
+  padding-top: 26px;
+  border-top: 1px solid #d6d2c9;
+}
+.footer-bottom p {
+  margin: 0;
+  font-size: 12px;
+}
+@media (max-width: 800px) {
+  .footer-columns {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 28px 48px;
+  }
+}
+
+/* Shared custom form feedback, including controls inside staff dialogs. */
+.form-validation {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid #b85b50;
+  border-radius: 6px;
+  color: #852d25;
+  background: #fff4f1;
+  overflow-wrap: anywhere;
+}
+.form-validation p { margin: 0 0 0.35rem; font-weight: 600; }
+.form-validation ul { margin: 0; padding-left: 1.2rem; }
+.form-validation button { color: inherit; text-align: left; text-decoration: underline; background: none; border: 0; padding: 0.25rem 0; font: inherit; cursor: pointer; }
+.form-validation button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { outline: 2px solid #a53b30; outline-offset: 2px; }
+.form-error { color: #852d25; overflow-wrap: anywhere; }
+
+/* Shared success feedback across guest and staff flows. */
+:root {
+  --success-ink: #28583a;
+  --success-surface: #f0f7f1;
+  --success-line: #bdd4c2;
+}
+.success-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--success-line);
+  border-radius: 6px;
+  background: var(--success-surface);
+  color: var(--success-ink);
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.success-banner > .ui-icon { flex-shrink: 0; margin-top: 0.125rem; }
+.feedback-toast-success {
+  background: var(--success-surface);
+  border-color: var(--success-line);
+  border-left-color: var(--success-ink);
+}
+.feedback-toast-success .feedback-toast-icon { color: var(--success-ink); }
+.feedback-toast { border-radius: 6px; overflow-wrap: anywhere; }
+.feedback-toast-close { min-width: 32px; min-height: 32px; }
+@media print { .feedback-toasts { display: none; } }
+/* The same placeholder treatment for native and HeroUI fields. */
+input::placeholder, textarea::placeholder,
+input:not(:where(.heroui-control *))::placeholder,
+textarea:not(:where(.heroui-control *))::placeholder,
+.heroui-control input::placeholder, .heroui-control textarea::placeholder {
+  color: #596776;
+  opacity: 1;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* Confirmation dialogs share the calm guest/staff visual language. */
+.confirmation-backdrop { background: rgba(16, 37, 59, 0.42); }
+.confirmation-dialog {
+  background: #fffdf9;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  max-width: min(440px, calc(100vw - 32px));
+}
+.confirmation-dialog h2 { font-family: "Source Sans 3", sans-serif; font-size: 1.5rem; line-height: 1.25; }
+.confirmation-dialog .button { min-height: 44px; white-space: normal; }
+.confirmation-dialog .button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+@media (max-width: 480px) {
+  .confirmation-dialog footer { flex-wrap: wrap; }
+  .confirmation-dialog footer .button { flex: 1 1 100%; }
+}
