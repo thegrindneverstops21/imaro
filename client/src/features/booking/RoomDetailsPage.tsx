@@ -8,6 +8,14 @@ import type { Branch } from "../../types/api";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../app/store";
 
+function roomParagraphs(description: string) {
+  const parts = description
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return parts.length > 0 ? parts : [description];
+}
+
 export function RoomDetailsPage() {
   const { slug = "", roomType = "" } = useParams();
   const stay = useSelector((state: RootState) => state.stay);
@@ -65,7 +73,28 @@ export function RoomDetailsPage() {
         <span> / </span>
         <span>{room.name}</span>
       </div>
-      <div className="room-detail-heading"><h1>{room.name}</h1><p>{room.description}</p></div>
+      <div className="room-detail-heading">
+        <h1>{room.name}</h1>
+        <div className="room-detail-description">
+          {roomParagraphs(room.description).map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
+        <dl className="room-facts">
+          <div>
+            <dt>Size</dt>
+            <dd>{room.sizeM2} m²</dd>
+          </div>
+          <div>
+            <dt>Bed</dt>
+            <dd>{room.bed}</dd>
+          </div>
+          <div>
+            <dt>Sleeps</dt>
+            <dd>Up to {room.capacity} guests</dd>
+          </div>
+        </dl>
+      </div>
       <div className="room-detail-layout">
           <RoomGallery images={room.images} roomName={room.name} />
 
@@ -110,11 +139,6 @@ export function RoomDetailsPage() {
           </button>
         </aside>
           <div className="room-detail-copy">
-            <div className="room-specs">
-              <span>{room.sizeM2} m²</span>
-              <span>{room.bed}</span>
-              <span>Up to {room.capacity} guests</span>
-            </div>
             <h2>Included in your stay</h2>
             <ul className="amenity-list">
               {room.amenities.map((amenity) => (
