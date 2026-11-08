@@ -1,5 +1,17 @@
 # Imaro application state
 
+## Current source checkpoint — 6 November 2026
+
+This checkpoint supersedes older current-status summaries below. Historical test/build/browser results remain evidence for those earlier revisions only; they do not verify the latest component migration. This update inspected source only and ran no tests, builds or browser checks, following the user's usage preference.
+
+- Guest-first sprints 0–5 have their principal screens implemented. Original review records remain historical; release acceptance (Sprint 6) is still open.
+- UI elevation is partially implemented: Tailwind v4/Vite, HeroUI provider and exports, Framer Motion, hero/cards/reveals/bento amenities, room gallery, checkout controls/summary, account tabs/profile inputs and reservation status chips are wired into existing pages. See [UI elevation status](design/ui-elevation-sprints.md) for exact scope and remaining work.
+- Recent repairs are implemented: branch selection uses the URL; legacy native control/label styles exclude marked HeroUI controls; mobile search layout targets direct field wrappers; checkout requires consent; Review uses one one-second clock for countdown and expiry with a click-time payment guard.
+- Receipt countdown wiring now supplies the required live `now` prop, matching the Review flow. Typecheck and lint pass after the repair.
+- PayFast checkout works according to the user's report. Public HTTPS callback/ITN verification and deployment remain unverified in this checkpoint; checkout success alone does not establish webhook completion.
+- Next: manually verify branch Back/Forward/refresh and mobile search/checkout controls, then review the remaining elevation scope.
+
+
 ## Admin and discovery update - 6 November 2026
 
 Password sign-in is available for the seeded local/submission administrator (`admin@imaro.local`); Google OAuth is not required for the admin demo path. The credential is seeded in `backend/src/db/seed.sql`, documented in `README.md`, and must be changed or removed before shared deployment.

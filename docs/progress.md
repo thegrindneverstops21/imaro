@@ -6,6 +6,17 @@ Use this file for task status and next steps. Use [application state](applicatio
 
 Status meanings: **Done** = completed with stated evidence; **Partial** = some code exists but work remains; **Pending** = not completed; **Unresolved** = an observed issue still needs investigation. A passing build does not prove a working reservation flow.
 
+## Current source checkpoint — 6 November 2026
+
+This checkpoint supersedes older current-status summaries below. Historical test/build/browser results remain evidence for those earlier revisions only; they do not verify the latest component migration. This update inspected source only and ran no tests, builds or browser checks, following the user's usage preference.
+
+- Guest-first sprints 0–5 have their principal screens implemented. Original review records remain historical; release acceptance (Sprint 6) is still open.
+- UI elevation is partially implemented: Tailwind v4/Vite, HeroUI provider and exports, Framer Motion, hero/cards/reveals/bento amenities, room gallery, checkout controls/summary, account tabs/profile inputs and reservation status chips are wired into existing pages. See [UI elevation status](design/ui-elevation-sprints.md) for exact scope and remaining work.
+- Recent repairs are implemented: branch selection uses the URL; legacy native control/label styles exclude marked HeroUI controls; mobile search layout targets direct field wrappers; checkout requires consent; Review uses one one-second clock for countdown and expiry with a click-time payment guard.
+- Receipt countdown wiring now supplies the required live `now` prop, matching the Review flow. Typecheck and lint pass after the repair.
+- PayFast checkout works according to the user's report. Public HTTPS callback/ITN verification and deployment remain unverified in this checkpoint; checkout success alone does not establish webhook completion.
+- Next: manually verify branch Back/Forward/refresh and mobile search/checkout controls, then review the remaining elevation scope.
+
 ## Completed steps
 
 | Step                                                | Status | Evidence / scope                                                                                                                                                              |
@@ -54,7 +65,7 @@ Status meanings: **Done** = completed with stated evidence; **Partial** = some c
 | Loading, empty, error, and recovery states    | Partial  | Basic states exist; skeletons and complete failure scenarios remain.                                                                                                                                                                                                              |
 | Responsive design, accessibility, performance | Pending  | Complete the guideline checks and record measurements; compilation alone is insufficient.                                                                                                                                                                                         |
 
-## Current checkpoint
+## Historical checkpoint — superseded by current source checkpoint
 
 Browse connectivity is fixed and verified against the existing database and in the browser. The core booking journey is implemented and live-verified end to end, including invalid-token recovery. The room gallery and Guest Details policy disclosures are implemented and browser-verified. API remains running on port 4000.
 
@@ -216,3 +227,21 @@ Source review identified silent property fallback, consent referencing missing c
 Fixed the high-priority guest findings: requested-property identity is preserved with explicit availability states instead of a silent fallback; consent requires a real cancellation policy; booking tokens survive blocked storage and can be deliberately exported from review, confirmation and manage; password and Google sign-in restore the originating page and a pending save; review reacts to hold expiry. Unavailable rooms keep their detail links.
 
 Evidence: lint, API and client TypeScript checks and 13 focused unit tests pass (new sign-in-path, hold-expiry and storage-failure cases). Client production build result recorded below the run. Not verified: browser rendering, genuine storage failure, live PayFast, email delivery of access details, editing an existing hold and password reset.
+
+## UI wiring repairs - 6 November 2026
+Restored required native consent validation plus explicit submit feedback. Migrated HeroUI form controls now carry a boundary class excluded from legacy native input/textarea/select selectors. Review owns the single one-second clock used by both hold countdown and payment expiry; click-time expiry is checked against the current time. Source diff reviewed only; no tests, builds or browser verification run, per usage preference.
+
+
+## Focused styling and navigation repairs - 6 November 2026
+
+- Branch selection now updates the URL, preserving other query parameters and the hash. Browser Back/Forward and refreshed links use the same selection source.
+- Scoped legacy label and checkbox layout rules away from HeroUI controls so their component styles can apply.
+- Mobile search grid rules now target direct search fields, including the new location Select wrapper, instead of nested labels.
+- Kept the existing design, typography and page structure. Source/whitespace review only; no tests, builds or browser checks run at the user's request. Manual checks remaining: branch selection + Back/Forward/refresh, mobile search layout, checkout labels and terms checkbox.
+
+
+## Guest visual refinement — 6 November 2026
+
+Implemented a flat booking strip below the hero, consistent outlined date/select controls, quieter location tabs, wider room spacing and persistent hero text without staggered entrances. Room detail actions are native router links; cards no longer lift on hover. Preserved fonts, palette, factual copy and booking logic. Preview launch blocked: default Vite config bundling fails on Tailwind native dependency; runner loader fails on picomatch require. No tests/builds run; rendered desktop/mobile verification remains open.
+
+Follow-up scope: user confirmed dissatisfaction across all surfaces. Added Imaro HeroUI primary/focus/surface tokens and restrained corner radii; unified checkout/profile field slots, added the missing ProfileForm CSS boundary, aligned the global action colour to navy and flattened staff filter backgrounds. This is an implemented consistency pass, not a claim that every screen is redesigned or visually verified. Impeccable detector reported no findings for the discovery files; local preview remains blocked.
