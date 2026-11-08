@@ -18,6 +18,18 @@ export function previewCancellation(
   });
 }
 
+function billingAddress(booking: BookingRow): BookingView["billingAddress"] {
+  if (!booking.billingAddressLine1) return null;
+  return {
+    addressLine1: booking.billingAddressLine1,
+    addressLine2: booking.billingAddressLine2 ?? null,
+    city: booking.billingCity ?? "",
+    province: booking.billingProvince ?? "",
+    postalCode: booking.billingPostalCode ?? "",
+    country: booking.billingCountry ?? "",
+  };
+}
+
 // What a guest sees about a booking, including what cancelling would cost right now.
 export function toBookingView(
   booking: BookingRow,
@@ -44,6 +56,7 @@ export function toBookingView(
       email: booking.guestEmail,
       phone: booking.guestPhone,
     },
+    billingAddress: billingAddress(booking),
     rooms,
     cancellation: cancellable ? previewCancellation(booking, rooms, now) : null,
   };

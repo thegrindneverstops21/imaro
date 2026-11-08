@@ -3,6 +3,7 @@ export interface SessionUser {
   email: string;
   name: string;
   role: string;
+  phone?: string | null;
 }
 
 export interface Session {
@@ -27,6 +28,7 @@ export interface PasswordUserInput {
   email: string;
   passwordHash: string;
   role: string;
+  phone?: string;
 }
 
 // A local account stores a password hash; accounts created through Google leave it null.

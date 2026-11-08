@@ -10,6 +10,12 @@ export interface CreateBookingInput {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  province?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
   specialRequests?: string | undefined;
 }
 
@@ -35,6 +41,12 @@ export interface NewBooking {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
+  billingAddressLine1: string | null;
+  billingAddressLine2: string | null;
+  billingCity: string | null;
+  billingProvince: string | null;
+  billingPostalCode: string | null;
+  billingCountry: string | null;
   checkIn: string;
   checkOut: string;
   guests: number;
@@ -63,6 +75,12 @@ export interface BookingRow {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
+  billingAddressLine1?: string | null;
+  billingAddressLine2?: string | null;
+  billingCity?: string | null;
+  billingProvince?: string | null;
+  billingPostalCode?: string | null;
+  billingCountry?: string | null;
   checkIn: string;
   checkOut: string;
   guests: number;
@@ -116,6 +134,14 @@ export interface BookingView {
   vatIncluded: number;
   holdExpiresAt: string | null;
   guest: { name: string; email: string; phone: string };
+  billingAddress: {
+    addressLine1: string;
+    addressLine2: string | null;
+    city: string;
+    province: string;
+    postalCode: string;
+    country: string;
+  } | null;
   rooms: RoomSummary[];
   cancellation: CancellationOutcome | null;
 }
@@ -153,6 +179,14 @@ export interface BookingListItem {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
+  billingAddress?: {
+    addressLine1: string;
+    addressLine2: string | null;
+    city: string;
+    province: string;
+    postalCode: string;
+    country: string;
+  } | null;
   createdAt: Date;
 }
 
