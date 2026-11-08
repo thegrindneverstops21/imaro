@@ -245,3 +245,49 @@ Restored required native consent validation plus explicit submit feedback. Migra
 Implemented a flat booking strip below the hero, consistent outlined date/select controls, quieter location tabs, wider room spacing and persistent hero text without staggered entrances. Room detail actions are native router links; cards no longer lift on hover. Preserved fonts, palette, factual copy and booking logic. Preview launch blocked: default Vite config bundling fails on Tailwind native dependency; runner loader fails on picomatch require. No tests/builds run; rendered desktop/mobile verification remains open.
 
 Follow-up scope: user confirmed dissatisfaction across all surfaces. Added Imaro HeroUI primary/focus/surface tokens and restrained corner radii; unified checkout/profile field slots, added the missing ProfileForm CSS boundary, aligned the global action colour to navy and flattened staff filter backgrounds. This is an implemented consistency pass, not a claim that every screen is redesigned or visually verified. Impeccable detector reported no findings for the discovery files; local preview remains blocked.
+
+
+## Admin simplification — 8 November 2026
+
+Implemented in imaro-clean: compact heading/filter/table spacing; Rooms, Rates and Branches creation forms collapsed behind named disclosure actions; reservation details and write actions expandable per row; redundant property column removed; unpaid uses warning colour. Section selection is URL-backed (`section` query) and survives refresh/history. Readiness hides after completion and waits for successful inventory loading; only incomplete checks are listed. Existing confirmations and write hooks remain.
+
+Known room categories now appear by name in a select. New properties still require a known category ID when no categories are available: the existing API only supplies categories through inventory/rates. Branch technical labels are clearer, but map coordinates and web address names remain required by the current contract. Guest/room SelectItems now declare their text values; guest results and sign-in spacing are tighter.
+
+Source/whitespace review only; no tests, builds or browser checks. Running-checkout identification was denied by Windows process inspection, so the localhost checkout remains unconfirmed. Manual checks: section history, expand/create/edit/cancel flows, readiness loading, reservation details and guest count labels. These changes do not close release acceptance or the previously documented receipt countdown issue.
+
+
+## Reference-led admin shell — 8 November 2026
+
+Adapted the supplied dashboard reference into an Imaro navy sidebar, compact staff top bar, warm-neutral property overview and white operational workspace. Authenticated admin no longer uses the guest navigation/footer. Existing four sections, notifications, profile, sign-out, branch selection and write workflows remain connected. Overview uses actual inventory/rate/publication data; no revenue, occupancy or trend claims are fabricated. Mobile sidebar becomes wrapping section navigation. Source/whitespace review only; no tests/builds or rendered verification.
+
+
+## Notification panel usability — 8 November 2026
+Moved notifications to a viewport-positioned portal to avoid header clipping/stacking issues. Added a compact title/44px close control, clear empty state, scrollable height limit, viewport clamping, outside-click/Escape/focus-away dismissal and focus restoration on explicit close. Uses unique panel IDs and preserves read/booking actions. Source/whitespace review only; no tests/build/browser verification.
+
+
+## Notification trigger refinement — 8 November 2026
+Removed the bell trigger’s permanent border/background. Retained a 44px target, subtle hover/open background and keyboard focus outline. CSS-only change; no tests/build run.
+
+
+## Property switcher polish — 8 November 2026
+Replaced the boxed Branch field treatment with a compact rounded white property switcher, inset Current property label and Hugeicons chevron. Removed repeated city text when already present in the property name. Native select behavior retained, including keyboard support, disabled/empty states and visible focus. Source/whitespace check only; no tests/builds or browser verification.
+
+
+## Property dropdown — 8 November 2026
+Replaced native property select with the existing HeroUI Select: styled portalled menu, warm hover, muted selected row, 44px options, string IDs and explicit option text. Preserved branch-change callback and busy/empty disabling; disallowed accidental deselection. Removed superseded native-switcher CSS. Source-only review; no tests/builds or rendered verification.
+
+
+## Property selector reference refinement — 8 November 2026
+Matched the supplied Location selector treatment: external label, 48px white outlined trigger, rounded white menu, warm selected row and bronze chevron. Retained readable navy selected text and full property names for unambiguous branch selection. CSS/source review only; no build/test/browser pass.
+
+
+## Location option text — 8 November 2026
+Property switcher now displays city names in both its selected value and menu. Properties sharing a city retain their property name to distinguish them; missing city falls back to the property name. Source-only change, no tests/build.
+
+
+## Location menu inset — 8 November 2026
+Scoped a list-margin/padding reset to the property dropdown and removed extra listbox wrapper padding. Options retain a 12px text inset. No tests/build or browser verification.
+
+
+## Dropdown reference correction — 8 November 2026
+Added explicit HeroUI list/wrapper classes and reset actual ul indentation and margins. Compact full-width rows with warm selected state; replaced inherited thick outside focus ring with a thin inset keyboard indicator. Source inspection of installed HeroUI confirmed supported class slots. Browser appearance still requires verification; no tests/build run.

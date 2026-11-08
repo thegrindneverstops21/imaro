@@ -202,3 +202,7 @@ Closeout verification: lint, client TypeScript and production build passed on 5 
 
 ## 6 November 2026 - frontend verification and PayFast preparation
 See docs/design/sprint-6-review.md for current evidence and remaining acceptance work. Full check passed 214 tests in 26 files, lint and both TypeScript checks; production client build passed. Eight fixture screens checked at four viewport widths without document overflow; account/staff tabs, cancellation error, copy feedback and printed confirmation reviewed. Added payfast:check and docs/payfast-sandbox.md. Sandbox credentials/public callbacks are missing; no live payment performed. Sprint 6 remains open for the documented real integration, accessibility and device checks.
+
+
+## Admin update — 8 November 2026
+Lists now lead the admin sections, with creation forms disclosed on demand and reservation details expandable. Section navigation uses the URL. Readiness waits for inventory success and hides when complete. Known room types display by name; new-branch category discovery remains limited by the API. See progress.md for implementation and manual verification limits.
