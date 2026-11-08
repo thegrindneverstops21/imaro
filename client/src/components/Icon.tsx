@@ -2,6 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
   ArrowDown01Icon,
+  Calendar01Icon,
   Clock01Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
@@ -20,6 +21,7 @@ const icons = {
   arrowRight: ArrowRight01Icon,
   arrowUpRight: ArrowUpRight01Icon,
   clock: Clock01Icon,
+  calendar: Calendar01Icon,
   close: Cancel01Icon,
   heart: FavouriteIcon,
   menu: Menu01Icon,
