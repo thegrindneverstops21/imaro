@@ -19,6 +19,7 @@ export const ErrorMessage = {
   RouteNotFound: "Route not found",
   BranchNotFound: "Branch not found",
   BookingNotFound: "Booking not found",
+  ReviewNotFound: "Review not found",
   RoomTypeNotOffered: "That room type is not available at this branch",
   BookingConflict: "Those rooms are no longer available for your dates",
   CannotCancel: "This booking can no longer be cancelled",

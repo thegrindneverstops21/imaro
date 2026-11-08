@@ -27,6 +27,13 @@ export const GUEST_FIELD_LIMITS = {
   phoneMax: 40,
   notesMax: 2000,
 } as const;
+export const ADDRESS_FIELD_LIMITS = {
+  lineMax: 200,
+  cityMax: 120,
+  provinceMax: 120,
+  postalCodeMax: 20,
+  countryMax: 80,
+} as const;
 // Local accounts pick their own password; these limits are enforced by the API, not just the form.
 export const PASSWORD_LIMITS = { min: 8, max: 200 } as const;
 export const PASSWORD_RESET_TOKEN_BYTES = 32;
