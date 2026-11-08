@@ -151,7 +151,10 @@ export function RoomsPanel({ branchId, inventory, writes }: Props) {
           onDiscard={() => actions.setEdit(null)}
         />
       )}
-      <AddRoomForm types={inventory.types} busy={writes.busy} onAdd={actions.add} />
+      <details className="admin-create">
+        <summary>Add room</summary>
+        <AddRoomForm types={inventory.types} busy={writes.busy} onAdd={actions.add} />
+      </details>
       <RoomTable
         rooms={inventory.rooms}
         onEdit={({ id, roomNumber, roomTypeId }) =>

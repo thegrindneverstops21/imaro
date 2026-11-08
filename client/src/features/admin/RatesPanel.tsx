@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type RefObject } from "react";
+import { useEffect, useRef, useState, type FormEvent, type RefObject } from "react";
 import { formatMoney } from "../../lib/format";
 import type { Price, RoomTypeOption } from "./adminTypes";
 import { RoomTypeIdField } from "./RoomTypeIdField";
@@ -92,11 +92,15 @@ function RateTable({ prices, onEdit, onRemove }: TableProps) {
 type Props = { branchId: string; inventory: BranchInventory; writes: Writes };
 
 export function RatesPanel({ branchId, inventory, writes }: Props) {
+  const [editing, setEditing] = useState(false);
   const [input, setInput] = useState(BLANK_RATE);
   const priceField = useRef<HTMLInputElement>(null);
   const { save, remove } = useRateActions(branchId, inventory.reload, writes);
 
+  useEffect(() => { if (editing) priceField.current?.focus(); }, [editing]);
+
   function edit(price: Price) {
+    setEditing(true);
     setInput({ roomTypeId: String(price.roomTypeId), pricePerNight: String(price.pricePerNight) });
     priceField.current?.focus(); // the form sits above the table; move the user to it
   }
@@ -105,6 +109,8 @@ export function RatesPanel({ branchId, inventory, writes }: Props) {
     <div className="admin-panel">
       <h2>Nightly rates</h2>
       {inventory.loading && <p role="status">Loading nightly rates…</p>}
+      <details className="admin-create" open={editing} onToggle={(event) => setEditing(event.currentTarget.open)}>
+      <summary>Add or edit rate</summary>
       <RateForm
         input={input}
         types={inventory.types}
@@ -113,6 +119,7 @@ export function RatesPanel({ branchId, inventory, writes }: Props) {
         onChange={setInput}
         onSubmit={() => void save(input)}
       />
+      </details>
       <RateTable prices={inventory.prices} onEdit={edit} onRemove={(price) => void remove(price)} />
     </div>
   );

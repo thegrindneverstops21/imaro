@@ -164,13 +164,15 @@ export function BranchesPanel({ branches, reload, writes }: Props) {
           onDiscard={() => actions.setEdit(null)}
         />
       )}
-      <h2>Add a branch</h2>
+      <h2>Branches</h2>
+      <details className="admin-create">
+      <summary>Add branch</summary>
       <p>
         Add the property’s verified contact and location details. Existing branches can be updated
         or unpublished.
       </p>
       <BranchCreateForm busy={writes.busy} onCreate={actions.create} />
-      <h3>Existing branches</h3>
+      </details>
       <BranchTable
         branches={branches}
         onEdit={({ id, name, description }) =>

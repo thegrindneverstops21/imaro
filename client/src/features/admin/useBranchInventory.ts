@@ -22,6 +22,7 @@ export function typeOptions(rooms: AdminRoom[], prices: Price[]): RoomTypeOption
 
 export function useBranchInventory(branchId: string) {
   const [inventory, setInventory] = useState<Inventory>(EMPTY);
+  const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const latest = useRef(0);
@@ -33,6 +34,7 @@ export function useBranchInventory(branchId: string) {
     }
     const id = ++latest.current;
     setLoading(true);
+    setLoaded(false);
     setError("");
     try {
       const base = `/admin/branches/${branchId}`;
@@ -40,8 +42,10 @@ export function useBranchInventory(branchId: string) {
         request<AdminRoom[]>(`${base}/rooms`),
         request<Price[]>(`${base}/prices`),
       ]);
-      if (id === latest.current)
+      if (id === latest.current) {
         setInventory({ rooms, prices, types: typeOptions(rooms, prices) });
+        setLoaded(true);
+      }
     } catch (cause) {
       if (id === latest.current) setError(message(cause));
     } finally {
@@ -57,7 +61,7 @@ export function useBranchInventory(branchId: string) {
     };
   }, [load]);
 
-  return { ...inventory, loading, error, reload: load };
+  return { ...inventory, loading, loaded, error, reload: load };
 }
 
 export type BranchInventory = ReturnType<typeof useBranchInventory>;

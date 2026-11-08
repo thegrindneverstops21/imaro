@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { Select, SelectItem } from "../../components/ui";
+import { Icon } from "../../components/Icon";
+import { NotificationBell } from "../account/NotificationBell";
+import { Link, useSearchParams } from "react-router-dom";
 import { displayBrand } from "../../lib/format";
 import type { Branch } from "../../types/api";
 import { TABS, type Tab } from "./adminTypes";
@@ -22,18 +25,33 @@ function AdminHeading({ branches, selected, disabled, onSelect }: HeadingProps) 
     <div className="admin-heading">
       <div>
         <h1>Hotel operations</h1>
-        <p>Manage live reservations, room inventory, branch details, and rates.</p>
+        <p>Your property, at a glance.</p>
       </div>
-      <label>
-        Branch{" "}
-        <select value={selected} disabled={disabled} onChange={(event) => onSelect(event.target.value)}>
-          {branches.map((branch) => (
-            <option key={branch.id} value={branch.id}>
-              {displayBrand(branch.name)} · {branch.city}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select
+        className="property-switcher heroui-control"
+        classNames={{ trigger: "property-switcher-trigger", label: "property-switcher-label", value: "property-switcher-value", popoverContent: "property-switcher-menu" }}
+        label="Location"
+        labelPlacement="outside"
+        placeholder="No properties available"
+        selectedKeys={selected ? [selected] : []}
+        isDisabled={disabled || !branches.length}
+        disallowEmptySelection
+        onSelectionChange={(keys) => {
+          if (keys === "all") return;
+          const key = [...keys][0];
+          if (key != null && String(key) !== selected) onSelect(String(key));
+        }}
+        popoverProps={{ placement: "bottom-end", offset: 8 }}
+        listboxProps={{ classNames: { base: "property-menu-wrapper", list: "property-menu-list" }, itemClasses: { base: "property-switcher-option" } }}
+      >
+        {branches.map((branch) => {
+          const name = displayBrand(branch.name);
+          const city = branch.city.trim();
+          const sharedCity = branches.filter((item) => item.city.trim().toLocaleLowerCase() === city.toLocaleLowerCase()).length > 1;
+          const title = city ? (sharedCity ? `${city} · ${name}` : city) : name;
+          return <SelectItem key={String(branch.id)} textValue={title}>{title}</SelectItem>;
+        })}
+      </Select>
     </div>
   );
 }
@@ -67,7 +85,7 @@ function Readiness({
   inventory: ReturnType<typeof useBranchInventory>;
   onSelect: (tab: Tab) => void;
 }) {
-  if (!branch) return null;
+  if (!branch || inventory.loading || inventory.error || !inventory.loaded) return null;
   const activeRooms = inventory.rooms.filter((room) => room.status === "active").length;
   const checks = [
     { label: "Published", ready: branch.isPublished !== false, tab: "branches" as Tab },
@@ -75,6 +93,7 @@ function Readiness({
     { label: "Nightly rates", ready: inventory.prices.length > 0, tab: "rates" as Tab },
   ];
   const ready = checks.every((check) => check.ready);
+  if (ready) return null;
 
   return (
     <section className="admin-readiness" aria-labelledby="readiness-title">
@@ -87,7 +106,7 @@ function Readiness({
         </p>
       </div>
       <ul>
-        {checks.map((check) => (
+        {checks.filter((check) => !check.ready).map((check) => (
           <li key={check.label}>
             <span aria-label={check.ready ? "Complete" : "Needs attention"}>
               {check.ready ? "Complete" : "Needs attention"}
@@ -105,8 +124,12 @@ function Readiness({
   );
 }
 
-export function AdminPage() {
-  const [tab, setTab] = useState<Tab>("reservations");
+export function AdminPage({ onSignOut, userName }: { onSignOut: () => void; userName: string }) {
+  const [params, setParams] = useSearchParams();
+  const tab: Tab = TABS.find((item) => item.key === params.get("section"))?.key ?? "reservations";
+  function setTab(next: Tab) {
+    setParams((current) => { const query = new URLSearchParams(current); query.set("section", next); return query; });
+  }
   const writes = useAdminWrites();
   const branches = useAdminBranches();
   const inventory = useBranchInventory(branches.selected);
@@ -118,7 +141,29 @@ export function AdminPage() {
   const common = { branchId: branches.selected, writes };
 
   return (
-    <section className="page-shell admin-shell">
+    <section className="admin-dashboard">
+      <aside className="admin-sidebar">
+        <Link className="admin-brand" to="/admin">IMARO<span>Hotel management</span></Link>
+              <AdminTabs
+        tab={tab}
+        disabled={writes.busy}
+        onSelect={(next) => {
+          setTab(next);
+          writes.clearFeedback();
+        }}
+      />
+
+        <div className="admin-sidebar-bottom">
+          <Link to="/">View hotel website <Icon name="arrowUpRight" /></Link>
+          <button type="button" onClick={onSignOut}>Sign out</button>
+        </div>
+      </aside>
+      <div className="admin-main">
+        <header className="admin-topbar">
+          <span>Imaro / {TABS.find((item) => item.key === tab)?.title}</span>
+          <div className="admin-user"><NotificationBell /><Link to="/profile">{userName}</Link></div>
+        </header>
+        <div className="page-shell admin-shell">
       <AdminHeading
         branches={branches.branches}
         selected={branches.selected}
@@ -136,22 +181,22 @@ export function AdminPage() {
         </p>
       )}
       <Readiness branch={selectedBranch} inventory={inventory} onSelect={setTab} />
-      <AdminTabs
-        tab={tab}
-        disabled={writes.busy}
-        onSelect={(next) => {
-          setTab(next);
-          writes.clearFeedback();
-        }}
-      />
+      <div className="admin-overview" aria-label="Selected property overview">
+        <div><span>Active rooms</span><strong>{inventory.loading || !inventory.loaded ? "—" : inventory.rooms.filter((room) => room.status === "active").length}</strong><small>In this property's inventory</small></div>
+        <div><span>Rooms in maintenance</span><strong>{inventory.loading || !inventory.loaded ? "—" : inventory.rooms.filter((room) => room.status === "maintenance").length}</strong><small>Unavailable for allocation</small></div>
+        <div><span>Room types with rates</span><strong>{inventory.loading || !inventory.loaded ? "—" : inventory.prices.length}</strong><small>Nightly pricing configured</small></div>
+        <div><span>Guest visibility</span><strong className="admin-visibility">{selectedBranch ? selectedBranch.isPublished === false ? "Unpublished" : "Published" : "—"}</strong><small>{selectedBranch?.city ?? "Select a property"}</small></div>
+      </div>
       <fieldset className="admin-workspace" disabled={writes.busy || loadingInventory}>
         {tab === "reservations" && <ReservationsPanel {...common} />}
-        {tab === "rooms" && <RoomsPanel {...common} inventory={inventory} />}
-        {tab === "rates" && <RatesPanel {...common} inventory={inventory} />}
+        {tab === "rooms" && <RoomsPanel key={branches.selected} {...common} inventory={inventory} />}
+        {tab === "rates" && <RatesPanel key={branches.selected} {...common} inventory={inventory} />}
         {tab === "branches" && (
           <BranchesPanel branches={branches.branches} reload={branches.reload} writes={writes} />
         )}
       </fieldset>
+        </div>
+      </div>
     </section>
   );
 }
