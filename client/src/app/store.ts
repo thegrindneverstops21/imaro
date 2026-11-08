@@ -15,8 +15,13 @@ const local = (key: string, fallback: string) => {
   }
 };
 
-type GuestDraft = { guestName: string; guestEmail: string; guestPhone: string; specialRequests: string };
-const emptyGuestDraft: GuestDraft = { guestName: "", guestEmail: "", guestPhone: "", specialRequests: "" };
+export type GuestDraft = {
+  guestName: string; guestEmail: string; guestPhone: string;
+  specialRequests: string;
+};
+const emptyGuestDraft: GuestDraft = {
+  guestName: "", guestEmail: "", guestPhone: "", specialRequests: "",
+};
 type State = { stay: Stay; user: User | null; favorites: string[]; guestDraft: GuestDraft };
 const persisted: State = {
   stay: initialStay({
