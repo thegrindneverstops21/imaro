@@ -86,3 +86,46 @@
     right: 1rem;
   }
 }
+
+/* Portal panel avoids header clipping and stays inside the viewport. */
+.notification-panel.notification-popover {
+  position: fixed; right: auto; width: min(384px, calc(100vw - 32px));
+  z-index: 1000; padding: 0; margin: 0; overflow: auto;
+  border: 0; border-radius: 8px; background: #fff; color: #16324f;
+  box-shadow: 0 12px 40px #10253b33;
+}
+.notification-panel-heading { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; background: white; border-bottom: 1px solid #e6e3db; }
+.notification-panel-heading h2 { margin: 0; font: 600 18px/1.4 "Source Sans 3", sans-serif; }
+.notification-panel-heading button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 4px; background: #f5f4f0; color: #16324f; cursor: pointer; }
+.notification-panel-content { padding: 16px; overflow-wrap: anywhere; }
+.notification-empty { padding: 16px 0 24px; text-align: center; }
+.notification-empty p { margin: 12px 0 4px; font-weight: 600; }
+.notification-empty span { font-size: 14px; color: #405164; }
+.notification-panel-content article:first-child { border-top: 0; }
+.notification-panel-content h3 { font: 600 16px/1.4 "Source Sans 3", sans-serif; margin: 0 0 8px; }
+.notification-panel-content article p { margin: 0 0 12px; }
+.notification-unread h3 { font-weight: 700; }
+
+/* The notification trigger belongs to the header, without a permanent box. */
+.notification-bell > button.button.button-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+}
+.notification-bell > button.button.button-quiet:hover,
+.notification-bell > button.button.button-quiet[aria-expanded="true"] {
+  background: rgb(127 127 127 / 10%);
+}
+.notification-bell > button.button.button-quiet:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
