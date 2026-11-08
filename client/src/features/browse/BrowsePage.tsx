@@ -1,8 +1,12 @@
 import { Icon } from "../../components/Icon";
 import { useEffect, useRef, useState } from "react";
+import { Reveal } from "../../components/aceternity/Reveal";
+import { Select, SelectItem } from "../../components/ui";
+import { HeroSection } from "./HeroSection";
+import { RoomCard } from "./RoomCard";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { displayBrand, formatDate, formatMoney, pluralize } from "../../lib/format";
+import { displayBrand, formatDate, pluralize } from "../../lib/format";
 import { request, message, json } from "../../lib/api";
 import { localToday, nextDay, validateStay } from "../../lib/staySearch";
 import { rememberPendingSave, rememberSignInNext, signInLink, takePendingSave } from "../../lib/authIntent";
@@ -47,7 +51,15 @@ export function BrowsePage({
   const [saving, setSaving] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([]);
   const linkedSlug = new URLSearchParams(location.search).get("branch") ?? "";
-  const [selectedSlug, setSelectedSlug] = useState(linkedSlug);
+  const selectedSlug = linkedSlug;
+  function setSelectedSlug(slug: string) {
+    const query = new URLSearchParams(location.search);
+    if (slug) query.set("branch", slug);
+    else query.delete("branch");
+    const search = query.toString();
+    if (search === new URLSearchParams(location.search).toString()) return;
+    navigate({ pathname: location.pathname, search: search ? `?${search}` : "", hash: location.hash });
+  }
   const [cachedPhoto] = useState(rememberedHeroPhoto);
   const [detail, setDetail] = useState<Branch | null>(null);
   const [loading, setLoading] = useState(true);
@@ -181,6 +193,17 @@ export function BrowsePage({
     sort === "price" ? a.pricePerNight - b.pricePerNight : sort === "size" ? b.sizeM2 - a.sizeM2 : 0,
   );
   const changed = draft.checkIn !== stay.checkIn || draft.checkOut !== stay.checkOut || draft.guests !== stay.guests || draft.rooms !== stay.rooms;
+  // Mirrors the server rule roomsNeeded = max(rooms, ceil(guests / capacity)):
+  // surface the range across room sizes before the guest picks a room type.
+  const capacities = (detail?.roomTypes ?? []).map((room) => room.capacity).filter((capacity) => capacity > 0);
+  let roomHint = "";
+  if (capacities.length) {
+    const neededMin = Math.max(draft.rooms, Math.ceil(draft.guests / Math.max(...capacities)));
+    const neededMax = Math.max(draft.rooms, Math.ceil(draft.guests / Math.min(...capacities)));
+    if (neededMax > draft.rooms) {
+      roomHint = neededMin === neededMax ? `${neededMin}` : `${neededMin}–${neededMax}`;
+    }
+  }
   // No placeholder photograph: the hero shows a branch image, or the one this location served last time.
   const remembered =
     cachedPhoto && (!linkedSlug || cachedPhoto.slug === linkedSlug) ? cachedPhoto.url : undefined;
@@ -206,27 +229,14 @@ export function BrowsePage({
           <h1>Rooms & suites</h1>
           <p>Choose your location and dates to compare rooms for your stay.</p>
         </div>
-      ) : <section className="hero imaro-hero" ref={heroArea}>
-        {image && (
-          <div className="hero-image">
-            <img key={image} src={image} alt={imageAlt} fetchPriority="high" decoding="async" />
-          </div>
-        )}
-        <div className="hero-copy">
-          <h1>
-            Stay a<br />little longer.
-          </h1>
-          <p>
-            Discover Imaro. Find your room, choose your dates, and make yourself at home.
-          </p>
-          <a className="button" href="#book">
-            Find your stay <Icon name="arrowDown" />
-          </a>
-        </div>
-        <div className="hero-caption">
-          {active ? `Imaro · ${active.city}` : "Imaro Hotel · South Africa"}
-        </div>
-      </section>}
+      ) : (
+        <HeroSection
+          heroRef={heroArea}
+          image={image}
+          imageAlt={imageAlt}
+          caption={active ? `Imaro · ${active.city}` : "Imaro Hotel · South Africa"}
+        />
+      )}
       <section className="search-wrap" id="book" ref={bookingArea} aria-label="Find a room">
         <form
           className="search-panel booking-bar"
@@ -239,25 +249,23 @@ export function BrowsePage({
             setRetry((value) => value + 1);
           }}
         >
-          <label>
-            Location{" "}
-            <select
-              value={active?.slug ?? ""}
-              onChange={(event) => setSelectedSlug(event.target.value)}
-              aria-label="Choose Imaro location"
-            >
-              {locations.length ? (
-                locations.map((branch) => (
-                  <option key={branch.slug} value={branch.slug}>
-                    {branch.city}
-                  </option>
-                ))
-              ) : (
-                <option value="">{loading ? "Loading locations…" : "No locations available"}</option>
-              )}
-            </select>
-          </label>
-          <label>
+          <Select
+            className="search-field heroui-control"
+            label="Location"
+            placeholder="Choose a location"
+            isDisabled={!locations.length}
+            selectedKeys={[active?.slug ?? ""]}
+            onSelectionChange={(keys) => {
+              if (keys === "all") return;
+              const key = keys.currentKey ?? [...keys][0];
+              if (key != null) setSelectedSlug(String(key));
+            }}
+          >
+            {locations.map((branch) => (
+              <SelectItem key={branch.slug}>{branch.city}</SelectItem>
+            ))}
+          </Select>
+          <label className="search-field">
             Check in{" "}
             <input
               type="date"
@@ -267,7 +275,7 @@ export function BrowsePage({
               required
             />
           </label>
-          <label>
+          <label className="search-field">
             Check out{" "}
             <input
               type="date"
@@ -277,42 +285,45 @@ export function BrowsePage({
               required
             />
           </label>
-          <label>
-            Guests{" "}
-            <select
-              value={draft.guests}
-              onChange={(event) =>
-                updateStay({ guests: Number(event.target.value) })
-              }
-            >
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>
-                  {n} guest{n > 1 ? "s" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Rooms{" "}
-            <select
-              value={draft.rooms}
-              onChange={(event) =>
-                updateStay({ rooms: Number(event.target.value) })
-              }
-            >
-              {Array.from({ length: 5 }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>
-                  {n} room{n > 1 ? "s" : ""}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Select
+            className="search-field heroui-control"
+            label="Guests"
+            selectedKeys={[String(draft.guests)]}
+            onSelectionChange={(keys) => {
+              if (keys === "all") return;
+              const key = keys.currentKey ?? [...keys][0];
+              if (key != null) updateStay({ guests: Number(key) });
+            }}
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <SelectItem key={String(n)}>
+                {n} guest{n > 1 ? "s" : ""}
+              </SelectItem>
+            ))}
+          </Select>
+          <Select
+            className="search-field heroui-control"
+            label="Rooms"
+            selectedKeys={[String(draft.rooms)]}
+            onSelectionChange={(keys) => {
+              if (keys === "all") return;
+              const key = keys.currentKey ?? [...keys][0];
+              if (key != null) updateStay({ rooms: Number(key) });
+            }}
+          >
+            {Array.from({ length: 5 }, (_, i) => i + 1).map((n) => (
+              <SelectItem key={String(n)}>
+                {n} room{n > 1 ? "s" : ""}
+              </SelectItem>
+            ))}
+          </Select>
           <button className="button" type="submit" disabled={loading}>
             {loading ? "Checking rooms…" : "Check availability"} <Icon name="arrowRight" />
           </button>
         </form>
         {validation && <p className="form-error" role="alert">{validation}</p>}
         {changed && !validation && <p className="search-hint" role="status">Dates or guests changed. Check availability to update the room prices below.</p>}
+        {roomHint && <p className="search-hint" role="status">Depending on room size, your party may need {roomHint} room{roomHint.includes("–") ? "s" : roomHint === "1" ? "" : "s"}.</p>}
       </section>
       <section className="page-shell rooms-section" id="rooms">
         <div className="section-heading">
@@ -439,64 +450,13 @@ export function BrowsePage({
                 active?.imageUrl ??
                 "";
               return (
-                <article
-                  className={`editorial-room room-${index + 1}`}
+                <RoomCard
                   key={room.slug}
-                >
-                  <div
-                    className="editorial-room-photo"
-                    style={{
-                      backgroundImage: photo ? `url("${photo}")` : undefined,
-                    }}
-                    role="img"
-                    aria-label={room.images?.[0]?.alt ?? room.name}
-                  >
-                  </div>
-                  <div className="editorial-room-copy">
-                    <h3>{room.name}</h3>
-                    <p className="room-description">{room.description}</p>
-                    <div className="room-specs">
-                      <span>{room.sizeM2} m²</span>
-                      <span>{room.bed}</span>
-                      <span>Up to {room.capacity} guests</span>
-                    </div>
-                    <div className="editorial-room-footer">
-                      <div>
-                        <strong>{formatMoney(room.pricePerNight)}</strong>
-                        <small>per room, per night · VAT included</small>
-                        {room.totalPrice != null && (
-                          <small>
-                            {formatMoney(room.totalPrice)} for{" "}
-                            {room.nights ?? 1} night{room.nights === 1 ? "" : "s"} · {room.roomsNeeded} room{room.roomsNeeded === 1 ? "" : "s"}
-                          </small>
-                        )}
-                      </div>
-                      <div className="room-card-actions">
-                        <button
-                          className="text-link"
-                          onClick={() =>
-                            navigate(`/room/${active.slug}/${room.slug}`)
-                          }
-                        >
-                          View this room <Icon name="arrowUpRight" />
-                        </button>
-                        {!room.canBook && (
-                          <span className="unavailable">
-                            Unavailable for this stay
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    {room.amenities?.length > 0 && (
-                      <p className="room-amenities">
-                        {room.amenities
-                          .slice(0, 4)
-                          .map((amenity) => amenity.name)
-                          .join(" · ")}
-                      </p>
-                    )}
-                  </div>
-                </article>
+                  room={room}
+                  photo={photo}
+                  branchSlug={active.slug}
+                  index={index}
+                />
               );
             })}
           </div>
@@ -506,6 +466,7 @@ export function BrowsePage({
             Explore all rooms <Icon name="arrowRight" />
           </Link>
         )}
+          <Reveal className="house-rules-reveal">
           <div className="house-rules" id="house-rules">
             <div>
               <h2>Before you arrive</h2>
@@ -523,8 +484,9 @@ export function BrowsePage({
               )) : <p>Stay information is unavailable right now. Choose a location above or try your search again.</p>}
             </div>
           </div>
+          </Reveal>
       </section>
-      {!roomsPage && <section className="hotel-note" id="hotel">
+      {!roomsPage && <Reveal><section className="hotel-note" id="hotel">
         <div
           className="hotel-note-image"
           style={{
@@ -544,7 +506,7 @@ export function BrowsePage({
             Plan your stay <Icon name="arrowUpRight" />
           </a>
         </div>
-      </section>}
+      </section></Reveal>}
 
     </div>
   );

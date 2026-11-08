@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { displayBrand } from "../../lib/format";
+import { BentoCard, BentoGrid } from "../../components/aceternity/BentoGrid";
 import type { Branch } from "../../types/api";
 
 export type Section = "hotel" | "stay-information" | "contact";
@@ -48,11 +49,13 @@ function HotelSection({ branch }: { branch: Branch }) {
       {!!branch.amenities?.length && (
         <>
           <h2>At the hotel</h2>
-          <ul className="information-amenities">
+          <BentoGrid className="information-amenities-bento">
             {branch.amenities.map((item) => (
-              <li key={item.name}>{item.name}</li>
+              <BentoCard key={item.name} className="information-amenity">
+                {item.name}
+              </BentoCard>
             ))}
-          </ul>
+          </BentoGrid>
         </>
       )}
       <h2>Dining</h2>
