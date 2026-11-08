@@ -21,12 +21,12 @@ const FILLED = {
 };
 
 describe("toBranchPayload", () => {
-  it("converts numeric fields and publishes the new branch", () => {
+  it("converts numeric fields and keeps the new branch in draft", () => {
     const payload = toBranchPayload(FILLED);
     expect(payload.lat).toBe(-33.9);
     expect(payload.lng).toBe(18.4);
     expect(payload.starRating).toBe(4);
-    expect(payload.isPublished).toBe(true);
+    expect(payload.isPublished).toBe(false);
   });
 
   it("keeps times in the HH:MM shape the API validates", () => {

@@ -195,6 +195,79 @@ describe("reviews", () => {
     expect(empty.body.data).toEqual([]);
     expect(empty.body.meta.total).toBe(1);
   });
+  it("lists reviews across branches and toggles helpful reactions per user", async () => {
+    const author = await createUser("author@test.example");
+    const fan = await createUser("fan@test.example");
+    const id = await createBooking(
+      "TEST-ALLREVIEWS",
+      daysFromToday(-4),
+      daysFromToday(-2),
+    );
+    await pool.query(
+      "UPDATE bookings SET user_id=$1,status='completed' WHERE id=$2",
+      [author.id, id],
+    );
+    const created = await request(app)
+      .post(`${API}/bookings/TEST-ALLREVIEWS/review`)
+      .set(auth(author.token))
+      .send({ rating: 4, comment: "Great pool" });
+    expect(created.status).toBe(201);
+    const reviewId = created.body.data.id as number;
+
+    const list = await request(app).get(`${API}/reviews`);
+    expect(list.status).toBe(200);
+    const review = list.body.data.find(
+      (item: { id: number }) => item.id === reviewId,
+    );
+    expect(review).toMatchObject({
+      rating: 4,
+      comment: "Great pool",
+      firstName: "Test",
+      branchSlug: "polokwane",
+      branchName: "Stillmere Polokwane",
+      helpfulCount: 0,
+      reacted: false,
+    });
+    expect(list.body.meta.ratingAverage).toBe(4);
+    expect(JSON.stringify(list.body)).not.toMatch(/@test\.example|TEST-ALLREVIEWS/);
+
+    const reactPath = `${API}/reviews/${reviewId}/reactions`;
+    expect((await request(app).post(reactPath)).status).toBe(401);
+    const on = await request(app).post(reactPath).set(auth(fan.token));
+    expect(on.body.data).toEqual({ reacted: true, helpfulCount: 1 });
+    const off = await request(app).post(reactPath).set(auth(fan.token));
+    expect(off.body.data).toEqual({ reacted: false, helpfulCount: 0 });
+    expect(
+      (
+        await request(app)
+          .post(`${API}/reviews/999999/reactions`)
+          .set(auth(fan.token))
+      ).status,
+    ).toBe(404);
+
+    const asFan = await request(app)
+      .get(`${API}/reviews`)
+      .set(auth(fan.token));
+    expect(
+      asFan.body.data.find((item: { id: number }) => item.id === reviewId)
+        .reacted,
+    ).toBe(false);
+    await request(app).post(reactPath).set(auth(fan.token));
+    const reacted = await request(app)
+      .get(`${API}/reviews`)
+      .set(auth(fan.token));
+    expect(
+      reacted.body.data.find((item: { id: number }) => item.id === reviewId),
+    ).toMatchObject({ reacted: true, helpfulCount: 1 });
+    // The author's own view is unaffected by the fan's reaction.
+    const asAuthor = await request(app)
+      .get(`${API}/reviews`)
+      .set(auth(author.token));
+    expect(
+      asAuthor.body.data.find((item: { id: number }) => item.id === reviewId)
+        .reacted,
+    ).toBe(false);
+  });
   it("rejects checkout today and invalid status", async () => {
     const user = await createUser("early@test.example");
     const id = await createBooking(
