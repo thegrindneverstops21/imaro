@@ -9,7 +9,6 @@ import { BookingProgress } from "./BookingProgress";
 import { CheckoutSummary } from "./CheckoutSummary";
 
 
-import { Checkbox, Input, Textarea, Button } from "../../components/ui";
 import { useFeedback } from "../../components/ui/Feedback";
 
 
@@ -414,8 +413,7 @@ export function BookingPage() {
 
 
           className="checkout-form"
-
-
+          validationPresentation="modal"
           onSubmit={(event) => void submit(event)}
 
 
@@ -454,142 +452,62 @@ export function BookingPage() {
           {(editingGuest || !user) && <div className="form-grid">
 
 
-            <Input
-
-
-              className="span-two heroui-control"
-
-
-              label="Full name"
-
-
-              autoComplete="name"
-
-
-              isRequired
-
-
-              maxLength={150}
-
-
-              value={form.guestName}
-
-
-              onValueChange={(value) => setForm({ ...form, guestName: value })}
-
-
-            />
-
-
-            <Input
-
-
-              className="heroui-control"
-
-
-              label="Email address"
-
-
-              type="email"
-
-
-              autoComplete="email"
-
-
-              isRequired
-
-
-              maxLength={254}
-
-
-              value={form.guestEmail}
-
-
-              onValueChange={(value) => setForm({ ...form, guestEmail: value })}
-
-
-            />
-
-
-            <Input
-
-
-              className="heroui-control"
-
-
-              label="Mobile number"
-
-
-              type="tel"
-
-
-              autoComplete="tel"
-
-
-              isRequired
-
-
-              minLength={5}
-
-
-              maxLength={40}
-
-
-              placeholder="+27"
-
-
-              value={form.guestPhone}
-
-
-              onValueChange={(value) => setForm({ ...form, guestPhone: value })}
-
-
-            />
-
-
-            <Textarea
-
-
-              className="span-two heroui-control"
-
-
-              label={
-
-
-                <>
-
-
-                  Special requests <small>Optional</small>
-
-
-                </>
-
-
-              }
-
-
-              minRows={3}
-
-
-              maxLength={2000}
-
-
-              value={form.specialRequests}
-
-
-              onValueChange={(value) =>
-
-
-                setForm({ ...form, specialRequests: value })
-
-
-              }
-
-
-              placeholder="Let the hotel know about anything that would make your stay more comfortable."
-
-
-            />
+            <label className="span-two">
+              Full name
+              <input
+                name="guestName"
+                autoComplete="name"
+                required
+                maxLength={150}
+                value={form.guestName}
+                onChange={(event) =>
+                  setForm({ ...form, guestName: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Email address
+              <input
+                name="guestEmail"
+                type="email"
+                autoComplete="email"
+                required
+                maxLength={254}
+                value={form.guestEmail}
+                onChange={(event) =>
+                  setForm({ ...form, guestEmail: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              Mobile number
+              <input
+                name="guestPhone"
+                type="tel"
+                autoComplete="tel"
+                required
+                minLength={5}
+                maxLength={40}
+                placeholder="+27"
+                value={form.guestPhone}
+                onChange={(event) =>
+                  setForm({ ...form, guestPhone: event.target.value })
+                }
+              />
+            </label>
+            <label className="span-two">
+              Special requests <small>Optional</small>
+              <textarea
+                name="specialRequests"
+                rows={3}
+                maxLength={2000}
+                value={form.specialRequests}
+                onChange={(event) =>
+                  setForm({ ...form, specialRequests: event.target.value })
+                }
+                placeholder="Let the hotel know about anything that would make your stay more comfortable."
+              />
+            </label>
 
 
           </div>}
@@ -652,40 +570,19 @@ export function BookingPage() {
           {cancellationPolicy ? (
 
 
-            <Checkbox
-
-
-              isRequired
-
-
-              validationBehavior="aria"
-
-
-              isSelected={terms}
-
-
-              onValueChange={setTerms}
-
-
-              className="terms-choice heroui-control"
-
-
-            >
-
-
+            <label className="terms-choice">
+              <input
+                name="terms"
+                type="checkbox"
+                required
+                checked={terms}
+                onChange={(event) => setTerms(event.target.checked)}
+              />
               <span>
-
-
                 I understand this booking uses a temporary room hold and agree to{" "}
-
-
                 <a href="#cancellation-policy">the hotel’s cancellation policy</a>.
-
-
               </span>
-
-
-            </Checkbox>
+            </label>
 
 
           ) : (
@@ -715,9 +612,10 @@ export function BookingPage() {
           {!room.canBook && <p className="form-error" role="alert">This room is no longer available for your stay. Change room or dates to continue.</p>}
 
 
-          <p className="checkout-final-total">Stay total · VAT included <strong>{formatMoney(total)}</strong></p><Button disabled={busy || !room.canBook || !cancellationPolicy}>
+          <p className="checkout-final-total">Stay total · VAT included <strong>{formatMoney(total)}</strong></p>
+          <button className="button" type="submit" disabled={busy || !room.canBook || !cancellationPolicy}>
             {busy ? "Creating your room hold…" : "Continue to review & payment"}
-          </Button>
+          </button>
 
 
         </Form>
