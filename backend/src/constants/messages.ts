@@ -1,4 +1,5 @@
 import { MAX_NIGHTS } from "./domain";
+import { MAX_IMAGE_MB } from "./upload";
 
 export const ErrorMessage = {
   ResourceNotFound: "Resource not found",
@@ -9,6 +10,8 @@ export const ErrorMessage = {
   RoomNotFound: "Room not found",
   RoomReserved: "Room has current or future reservations",
   CapacityExceeded: "Guest count exceeds reserved room capacity",
+  ImageTooLarge: `Choose an image smaller than ${MAX_IMAGE_MB} MB.`,
+  ImageType: "Please choose a JPEG, PNG or WebP image.",
   NoReplacementRooms: "No rooms available for the changed stay",
   ApprovalStatus: "Only paid reservations awaiting approval can be approved",
   ApprovalPayment: "Reservation must be paid before approval",

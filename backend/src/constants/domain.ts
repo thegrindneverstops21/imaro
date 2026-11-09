@@ -54,6 +54,14 @@ export const ADMIN_FIELD_LIMITS = {
   priceMax: 1_000_000,
   starRatingMin: 1,
   starRatingMax: 5,
+  imageUrlMax: 2048,
+  imageAltMax: 300,
+  imagesMax: 20,
+  amenityMax: 100,
+  amenitiesMax: 50,
+  policyTitleMax: 160,
+  policyBodyMax: 5000,
+  policiesMax: 20,
 } as const;
 export const CURRENCY = "ZAR";
 
