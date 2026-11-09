@@ -11,10 +11,23 @@ import { imageUploadDirectory } from "./services/imageUploadService";
 
 export const app = express();
 
+function allowedOrigin(origin: string | undefined) {
+  if (!origin || origin === env.CLIENT_URL) return true;
+  return (
+    env.NODE_ENV === Environment.Development &&
+    /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)
+  );
+}
+
 // helmet adds security-related HTTP headers (and hides "powered by Express").
 app.use(helmet());
 // CORS lets the React dev server (a different port) call this API with cookies.
-app.use(cors({ origin: env.CLIENT_URL, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    callback(null, allowedOrigin(origin));
+  },
+  credentials: true,
+}));
 app.use(`${API_PREFIX}/uploads`, express.static(imageUploadDirectory, {
   dotfiles: "deny",
   index: false,
