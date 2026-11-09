@@ -2,22 +2,30 @@
 
 Use sandbox only until the end-to-end checks below pass. Never put merchant keys or the passphrase in VITE_ variables, browser code, Git, or chat.
 
-## Configure locally
+## Configure the hosted API
 
-Set these in the ignored .env file using your sandbox account and public HTTPS frontend/API origins:
+Set these in Render using your sandbox account. Keep the root .env configured for localhost development:
 
 ```dotenv
 PAYFAST_SANDBOX=true
 PAYFAST_MERCHANT_ID=<sandbox merchant ID>
 PAYFAST_MERCHANT_KEY=<sandbox merchant key>
 PAYFAST_PASSPHRASE=<exact sandbox dashboard passphrase, or empty if none>
-PAYFAST_NOTIFY_URL=https://<public-api>/api/v1/payments/payfast/notify
-PAYFAST_RETURN_URL=https://<public-frontend>/payment/return
-PAYFAST_CANCEL_URL=https://<public-frontend>/payment/cancelled
-CLIENT_URL=https://<public-frontend>
+PAYFAST_NOTIFY_URL=https://imaro.onrender.com/api/v1/payments/payfast/notify
+PAYFAST_RETURN_URL=https://imaro.vercel.app/payment/return
+PAYFAST_CANCEL_URL=https://imaro.vercel.app/payment/cancelled
+CLIENT_URL=https://imaro.vercel.app
 ```
 
-Run `npm run payfast:check`, then restart the API. The checker prints missing configuration names, never secret values; it makes no network calls. A passing check does not verify credentials or public reachability. The frontend's VITE_API_URL must point to the public API /api/v1, or the frontend host must proxy /api/v1 to it. Serve the built frontend separately: the current Express app is API-only.
+Run `npm run payfast:check` against the intended configuration, then restart the API. The checker prints missing configuration names, never secret values; it makes no network calls. A passing check does not verify credentials or public reachability. The frontend's VITE_API_URL must point to the public API /api/v1, or the frontend host must proxy /api/v1 to it. Serve the built frontend separately: the current Express app is API-only.
+
+## Hosted environment settings
+
+Set `VITE_API_URL=https://imaro.onrender.com/api/v1` in the Vercel project and redeploy the frontend. Set the `CLIENT_URL` and PayFast URLs above in Render, along with `GOOGLE_REDIRECT_URI=https://imaro.onrender.com/api/v1/auth/google/callback`, and redeploy/restart the API. Register that exact callback as an authorized redirect URI for the Google OAuth client. Local `.env` edits do not update either host.
+
+## Local development
+
+Keep root `.env` URLs on localhost: `CLIENT_URL=http://localhost:5173`, `VITE_API_URL=http://localhost:4000/api/v1`, and `GOOGLE_REDIRECT_URI=http://localhost:4000/api/v1/auth/google/callback`. Local PayFast return/cancel URLs use port 5173; its notify route uses port 4000. Restart both development servers after changing environment settings. PayFast cannot deliver notifications to localhost: testing local payments requires a public tunnel to the local API, not the deployed Render API connected to a different environment.
 
 ## Existing integration
 

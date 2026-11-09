@@ -1,5 +1,27 @@
 # Imaro application state
 
+## Local API CORS - 9 November 2026
+
+Development CORS now accepts localhost and loopback origins on any port, allowing Vite to use either 5173 or an alternate port such as 5174 when the default is occupied. Production remains restricted to the configured `CLIENT_URL`.
+
+## Google and PayFast checkout refinement - 9 November 2026
+
+Added the Google brand mark to both Google sign-in actions. PayFast development checkout now reports a clear configuration error when local callback URLs are used instead of allowing the sandbox processor to return an opaque 400 error.
+
+Local PayFast testing still requires a public HTTPS tunnel for notify, return, and cancel URLs. Hosted deployment values remain separate from local `.env` values.
+
+## Booking hold database repair - 9 November 2026
+
+Applied the existing additive migration to the development database. The booking insert had been failing because the database lacked the billing address columns already defined in the current schema and migration. No destructive schema reset was used.
+
+Verification: a real local `POST /api/v1/bookings` returned 201 after migration, and all 29 booking API tests passed.
+
+## Guest checkout validation - 9 November 2026
+
+Guest Details consent now uses a native required checkbox so the visible checked state and shared form validator stay aligned. Checkout validation failures use a focused modal with a clear return-to-form action instead of an inline block.
+
+Verification: client TypeScript and targeted ESLint passed. Browser verification remains pending.
+
 ## Guest reviews — 8 November 2026
 
 - `GET /api/v1/reviews` returns all published reviews across branches (`{ data, meta: { total, ratingAverage, limit, offset } }`); each item includes rating, comment, first name only, branch slug/name, `helpfulCount`, and `reacted` for the signed-in viewer. `POST /api/v1/reviews/:id/reactions` requires sign-in and toggles the caller's "helpful" reaction (`{ reacted, helpfulCount }`).
@@ -254,3 +276,54 @@ Published control correction: Add Branch now uses a compact button-based switch 
 - Deployments must mount persistent storage at `UPLOAD_DIR`; this implementation does not provision cloud storage. Removed photos or abandoned forms do not delete uploaded files automatically.
 - Rooms and rates now use the shared modal form layout, full-width controls, normal-case labels/hints, consistent placeholder typography, and matching dialog widths. Outside-click dismissal is disabled for room/rate creation so interacting with native selection popups cannot dismiss the modal. Close, Cancel and Escape remain available. Branch creation also avoids outside-click dismissal during device file selection.
 - Tests, builds, lint, typechecks and browser verification were skipped per user preference. The modal fix and upload flow are implemented but not runtime-verified.
+
+## Guest fixes, step 1 — 9 November 2026
+
+Fixed the date picker overflow shown in the user's screenshot: the popup now uses a 320px width capped to the viewport with 12px side margins instead of inheriting the narrow trigger width. Seven equal day columns and explicit day padding keep dates contained; the month/year stays on one line. Native button keyboard activation now follows the same positioning path as mouse clicks.
+
+Verification: client TypeScript and targeted ESLint passed; Impeccable detector returned no findings. No app was listening on ports 5173/4000, so rendered appearance and interactions remain for manual testing. No database tests or writes performed.
+
+## Guest fixes, step 2 — 9 November 2026
+
+Removed email/Google sign-in, sign-out completion, notification-read and development reset-link success toasts. Sign-in errors remain inline without a duplicate toast. Restricted the authentication form's navigation guard to account creation, so typing login credentials no longer triggers discard confirmation when choosing Google, password recovery or leaving sign-in. Account creation retains its guard and success feedback; other saved-change and booking feedback remains.
+
+Verification: client TypeScript and targeted ESLint passed. Browser authentication and navigation flows remain unverified; no database tests or account writes performed.
+
+## Guest fixes, step 3 — 9 November 2026
+
+Scoped user-select suppression to the homepage hero and disabled native dragging for its photograph and booking link. The link retains native click/keyboard navigation, text remains exposed to assistive technology, and the existing reduced-motion-aware image arrival is unchanged.
+
+Verification: client TypeScript and targeted ESLint passed. Pointer/touch selection and booking-link behaviour still need browser/manual verification.
+
+## Deployment environment URLs � 9 November 2026
+
+Updated the ignored local .env CLIENT_URL and PayFast return/cancel URLs to https://imaro.vercel.app, removing the duplicate CLIENT_URL entry. Added VITE_API_URL and deployment guidance to the local-development example; PayFast documentation now uses the supplied frontend origin. Secret values were preserved.
+
+Verification: inspected only the relevant URL settings and checked the documentation/template diff. The public backend address is still needed for VITE_API_URL, GOOGLE_REDIRECT_URI and PAYFAST_NOTIFY_URL; the latter remains a placeholder. Hosted environment settings were not changed. Public site inspection was unavailable from this session. No tests, builds, database commands or payment requests were run. Restart the local API to apply .env changes; local browser use will need CLIENT_URL restored to its localhost origin.
+
+## Backend deployment URLs � 9 November 2026
+
+The user supplied https://imaro.onrender.com/api/v1. Updated the ignored .env VITE_API_URL, GOOGLE_REDIRECT_URI and PAYFAST_NOTIFY_URL to that API and its callback routes, preserving secrets and removing any duplicate entries for these keys. Updated the example's deployment comments and PayFast setup documentation with the concrete hosted values and hosting/Google configuration steps.
+
+Verification: asserted each updated local URL occurs exactly once; diff whitespace check passed. Hosted Vercel/Render settings and Google OAuth registration were not changed. No builds, database tests, payment requests or live integration verification were performed. This resolves the missing-backend-address blocker from the preceding checkpoint.
+
+## Guest fixes, step 4 — 9 November 2026
+
+Reproduced Reviews failure against the configured development database: LIST_ALL_REVIEWS raised PostgreSQL 42P01 because review_reactions was missing. Applied only the existing CREATE TABLE IF NOT EXISTS review_reactions statement from migration.sql inside a transaction. Did not run the full migration, seed or destructive schema setup; existing records were preserved. No application code change was needed.
+
+Verification: the exact review query now succeeds. Direct Supertest requests against the Express app for GET /api/v1/reviews?limit=26&offset=0 and offset=25 returned 200 with array data and valid pagination metadata. The database currently has zero reviews, so the page should show its existing empty state. No Vitest/global setup, review/reaction writes, or browser rendering checks were run. Other deployments must also have this existing additive migration applied.
+
+## Restore local development configuration � 9 November 2026
+
+Corrected the preceding deployment configuration changes: restored all six URL settings in ignored .env to localhost (frontend 5173, API 4000), preserving every other setting. Hosted URLs belong in Vercel/Render settings; clarified this in the PayFast guide. Verified exact local values and preservation of unrelated settings; no database writes or tests. Both development servers need restarting to load the restored configuration. Local PayFast notification delivery requires a public tunnel and remains unverified.
+
+## Guest fixes, step 5 — 9 November 2026
+
+Centered desktop guest navigation with a three-column header grid. Wide layouts (1440px+) use equal side columns so navigation stays at the page center; smaller desktop layouts center it in the space between the logo and account actions. Existing mobile menu breakpoint and interaction remain.
+
+Verification: inspected signed-out header in the browser at its default desktop width and a 1782px viewport, plus opened the mobile menu at 390px. Authenticated header remains for user testing. Preview ran on port 5174 after sandbox child-process restrictions required an elevated startup. The preview could not reach its configured API; this check verifies header rendering only, not Reviews data loading. No tests or database changes for this CSS-only step.
+## Guest fixes, step 6 - 9 November 2026
+
+Aligned Guest Details with the established native checkout form pattern and native Imaro submit button. This restores form validation/submission behavior for the Continue to review & payment action and keeps its navy styling consistent with the rest of checkout. Room sorting now applies a deterministic name tie-breaker after nightly rate or room size.
+
+Verification: client TypeScript passed and the full lint command still reports pre-existing backend violations in adminService, imageUploadService, and admin validation. Browser checkout and sorting behavior remain pending manual verification.

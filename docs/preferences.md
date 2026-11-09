@@ -55,3 +55,11 @@ The user's latest instructions take precedence over older design documents. Read
 
 - Allow photos to be uploaded from a device as well as entered by URL.
 - Keep staff modal layout and placeholder styling consistent. Selecting a room must not dismiss its modal.
+
+## Account feedback refinement — 9 November 2026
+
+The user's feedback supersedes the earlier blanket success-toast preference: avoid confirmations for routine sign-in, sign-out completion and marking notifications read. Do not treat sign-in/password-recovery inputs as unsaved document edits. Keep useful feedback for saved changes, account creation and major booking outcomes, and preserve actionable errors.
+
+## Hero interaction — 9 November 2026
+
+Keep the homepage hero immersive: prevent ordinary text selection and image/link dragging within the hero. Keep its booking link clickable and keyboard accessible; other page content remains selectable. User wording "copable" interpreted as copyable.

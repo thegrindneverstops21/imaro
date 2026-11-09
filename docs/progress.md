@@ -1,5 +1,27 @@
 # Imaro progress tracker
 
+## Local API CORS - 9 November 2026
+
+Fixed local login preflight failures caused by an API process retaining the previous `CLIENT_URL=http://localhost:5174` while the frontend ran on port 5173. Development CORS now permits localhost/127.0.0.1 origins on alternate ports; non-development environments still require the configured frontend origin.
+
+## Google and PayFast checkout refinement - 9 November 2026
+
+Added a branded Google mark to the sign-in page and account-creation modal. Diagnosed the PayFast 400 as local callback URLs: the current local configuration points PayFast at `localhost`, which PayFast cannot reach. Added a development-only server diagnostic explaining the public HTTPS requirement before redirecting.
+
+Verification: TypeScript, targeted ESLint, and all 12 PayFast API tests passed. `npm run payfast:check` correctly flags the local callback URLs. A public tunnel or hosted environment is still required for a real sandbox payment.
+
+## Booking hold database repair - 9 November 2026
+
+Reproduced the Guest Details failure as a backend HTTP 500. The server log showed PostgreSQL error 42703: `bookings.billing_address_line1` was missing from the development database. Applied the existing additive `migration.sql`; booking creation now succeeds without changing application code.
+
+Verification: real local booking request returned HTTP 201 and `npm test -- --run test/api/booking.test.ts` passed all 29 tests. The migration is required for other environments that have not applied it.
+
+## Guest checkout validation - 9 November 2026
+
+Fixed the Continue to review validation path: the HeroUI consent control could appear checked while the shared native validator still read it as unchecked. Replaced it with a controlled native checkbox and added modal validation feedback for Guest Details.
+
+Verification: `npm run typecheck`, targeted ESLint, and `git diff --check` passed. Browser verification remains pending.
+
 ## Guest reviews page — 8 November 2026
 
 - **Done (source):** New `/reviews` page lists reviews across all branches (newest first, paginated) with star rating, comment, reviewer first name, branch link, posting date, and average-rating summary. "Helpful" reactions toggle per signed-in user; signed-out visitors are sent to sign-in and returned to `/reviews`.
@@ -352,3 +374,46 @@ Published switch correction: replaced the checkbox affected by modal text-input 
 Implemented device image uploads (JPEG/PNG/WebP, 5 MB per image, 20 photos per branch) with staff authorization, public image serving, random filenames, configured storage and friendly partial-failure feedback. URL entry remains available. Unified room/rate modal form styling and placeholder typography; disabled outside-dismiss behavior that can treat native select/file-picker interaction as a click outside the dialog.
 
 No verification commands or browser runs, as requested. Production needs a persistent `UPLOAD_DIR`; abandoned uploads currently remain on disk. No database migration or dependency installation was required.
+
+## Guest fixes, step 1 — 9 November 2026
+
+Date picker sizing and keyboard opening fixed. Client TypeScript, targeted ESLint and the UI detector passed. Browser verification pending; local app ports were not listening. Pausing after this first fix for the user's requested testing checkpoint.
+
+Remaining requested steps: remove unnecessary success feedback (including sign-in), restore the agreed immersive hero interaction (clarify "copable" against current behavior), fix Reviews access error, center header content, repair Guest Details styling and Continue to review behavior/button colour, and fix discovery sorting.
+
+## Guest fixes, step 2 — 9 November 2026
+
+Account feedback cleanup implemented: removed routine auth/read success toasts and duplicate sign-in error toast; unsaved-change protection now applies only to account creation within the auth page. TypeScript and targeted ESLint passed; runtime testing pending. Ready for the user's next manual checkpoint. Remaining: hero interaction, Reviews error, header centering, Guest Details/Continue to review, and sorting.
+
+## Guest fixes, step 3 — 9 November 2026
+
+Hero text selection and image/link dragging disabled, interpreting the user's "copable" complaint as copyable. TypeScript and targeted ESLint passed; browser interaction testing pending. Ready for manual checkpoint. Next: Reviews access error, header centering, Guest Details/Continue to review, then sorting.
+
+## Deployment environment URLs � 9 November 2026
+
+Updated the ignored local .env CLIENT_URL and PayFast return/cancel URLs to https://imaro.vercel.app, removing the duplicate CLIENT_URL entry. Added VITE_API_URL and deployment guidance to the local-development example; PayFast documentation now uses the supplied frontend origin. Secret values were preserved.
+
+Verification: inspected only the relevant URL settings and checked the documentation/template diff. The public backend address is still needed for VITE_API_URL, GOOGLE_REDIRECT_URI and PAYFAST_NOTIFY_URL; the latter remains a placeholder. Hosted environment settings were not changed. Public site inspection was unavailable from this session. No tests, builds, database commands or payment requests were run. Restart the local API to apply .env changes; local browser use will need CLIENT_URL restored to its localhost origin.
+
+## Backend deployment URLs � 9 November 2026
+
+The user supplied https://imaro.onrender.com/api/v1. Updated the ignored .env VITE_API_URL, GOOGLE_REDIRECT_URI and PAYFAST_NOTIFY_URL to that API and its callback routes, preserving secrets and removing any duplicate entries for these keys. Updated the example's deployment comments and PayFast setup documentation with the concrete hosted values and hosting/Google configuration steps.
+
+Verification: asserted each updated local URL occurs exactly once; diff whitespace check passed. Hosted Vercel/Render settings and Google OAuth registration were not changed. No builds, database tests, payment requests or live integration verification were performed. This resolves the missing-backend-address blocker from the preceding checkpoint.
+
+## Guest fixes, step 4 — 9 November 2026
+
+Reviews access repaired in the configured development database by creating the missing review_reactions table using its existing migration definition. Confirmed the original SQL failure (42P01), then verified the real Express list endpoint returns 200 at offsets 0 and 25. Zero current reviews; empty-state rendering remains for user testing. No schema reset, seeds or existing-record changes. Preserved concurrent .env.example and PayFast documentation edits. Next: header centering, Guest Details/Continue to review, then sorting.
+
+## Restore local development configuration � 9 November 2026
+
+Corrected the preceding deployment configuration changes: restored all six URL settings in ignored .env to localhost (frontend 5173, API 4000), preserving every other setting. Hosted URLs belong in Vercel/Render settings; clarified this in the PayFast guide. Verified exact local values and preservation of unrelated settings; no database writes or tests. Both development servers need restarting to load the restored configuration. Local PayFast notification delivery requires a public tunnel and remains unverified.
+
+## Guest fixes, step 5 — 9 November 2026
+
+Header navigation centering implemented and browser-checked at desktop and 1782px widths; mobile menu opened successfully at 390px. Signed-in account controls remain for user verification. Preview API was unavailable, so data-backed flows were not reverified. Next: Guest Details styling and Continue to review behavior/colour, followed by sorting.
+## Guest fixes, step 6 - 9 November 2026
+
+Guest Details fields now use the same native labelled inputs and textarea pattern as the other guest/account forms. Continue to review & payment now uses an explicit native submit button with the existing navy checkout styling, restoring the form submit path. Room sorting now has deterministic alphabetical tie-breaking for recommended, price, and size modes.
+
+Verification: `npm run typecheck` passed and `git diff --check` passed. `npm run lint` remains blocked by pre-existing backend violations in `adminService.ts`, `imageUploadService.ts`, and `validation/admin.ts`; no unrelated lint fixes were made. Browser checkout navigation and sorting remain unverified.
