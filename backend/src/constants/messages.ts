@@ -27,6 +27,8 @@ export const ErrorMessage = {
   BookingConflict: "Those rooms are no longer available for your dates",
   CannotCancel: "This booking can no longer be cancelled",
   HoldExpired: "Booking hold has expired or is no longer payable",
+  PayFastPublicUrls:
+    "PayFast needs public https URLs for the notify, return and cancel callbacks. Update PAYFAST_NOTIFY_URL, PAYFAST_RETURN_URL and PAYFAST_CANCEL_URL in your .env.",
   ManageTokenRequired:
     "Booking manage token required in x-booking-token header",
   SignInRequired: "Sign in required",
