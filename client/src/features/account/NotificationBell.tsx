@@ -1,4 +1,3 @@
-import { useFeedback } from "../../components/ui/Feedback";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
@@ -8,7 +7,6 @@ import { useAccountData } from "./useAccountData";
 
 type Notice = { id: number; title: string; message: string; isRead: boolean; reference: string | null };
 export function NotificationBell() {
-  const { notify } = useFeedback();
   const { data, error, reload } = useAccountData<Notice[]>("/me/notifications");
   const toggle = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
@@ -55,7 +53,7 @@ export function NotificationBell() {
 
   async function read(id: number) {
     setFailure("");
-    try { await request(`/me/notifications/${id}/read`, json("PATCH")); notify("success", "Notification marked as read."); reload(); }
+    try { await request(`/me/notifications/${id}/read`, json("PATCH")); reload(); }
     catch (cause) { setFailure(message(cause)); }
   }
   return <div className="notification-bell">

@@ -1,4 +1,4 @@
-import { useDraftGuard, useNavigationGuard } from "../../components/ui/NavigationGuard";
+import { usePendingChanges, useNavigationGuard } from "../../components/ui/NavigationGuard";
 import { SuccessBanner } from "../../components/ui/SuccessBanner";
 import { Form } from "../../components/ui/Form";
 import { useState } from "react";
@@ -13,6 +13,17 @@ import { safePath, takeSignInNext } from "../../lib/authIntent";
 import type { User } from "../../types/api";
 
 type Session = { token: string; user: User };
+
+function GoogleMark() {
+  return (
+    <svg className="google-mark" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#4285F4" d="M21.35 12.23c0-.7-.06-1.37-.18-2.02H12v3.83h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.2Z" />
+      <path fill="#34A853" d="M12 21.75c2.63 0 4.84-.87 6.45-2.35l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.7-1.72-5.48-4.03H3.27v2.53A9.75 9.75 0 0 0 12 21.75Z" />
+      <path fill="#FBBC05" d="M6.52 13.84A5.86 5.86 0 0 1 6.22 12c0-.64.11-1.26.3-1.84V7.63H3.27A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.06 1.02 4.37l3.25-2.53Z" />
+      <path fill="#EA4335" d="M12 6.13c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.21 14.63 2.25 12 2.25a9.75 9.75 0 0 0-8.73 5.38l3.25 2.53C7.3 7.85 9.46 6.13 12 6.13Z" />
+    </svg>
+  );
+}
 
 export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
   const dispatch = useDispatch<AppDispatch>();
@@ -34,7 +45,7 @@ export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
   const nextPath = safePath(new URLSearchParams(location.search).get("next"));
   const staffIntent = nextPath === "/admin";
 
-  const markSaved = useDraftGuard({ name, email, password });
+  const markSaved = usePendingChanges(creating && Boolean(name.trim() || email.trim() || password));
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -52,11 +63,10 @@ export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
       const requested = safePath(new URLSearchParams(location.search).get("next")) || remembered;
       // Replace the sign-in page in history, so Back never lands on a stale form.
       navigate(requested || "/", { replace: true });
-      notify("success", creating ? "Account created — welcome to Imaro." : "Welcome back.");
+      if (creating) notify("success", "Account created — welcome to Imaro.");
     } catch (cause) {
       const text = message(cause);
       setError(text);
-      notify("error", "Sign-in failed", text);
       setBusy(false);
     }
 
@@ -74,7 +84,6 @@ export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
       );
       markSaved();
       if (result.resetToken) {
-        notify("success", "Reset link prepared.");
         navigate(`/reset-password?token=${encodeURIComponent(result.resetToken)}`);
       } else {
         setResetNotice(result.message);
@@ -172,6 +181,7 @@ export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
       </p>
 
       <button className="button button-outline auth-google" onClick={async () => { if (await confirmLeave()) { clear(); onGoogle(); } }}>
+        <GoogleMark />
         Continue with Google
       </button>
 
@@ -202,6 +212,7 @@ export function SignInPage({ onGoogle }: { onGoogle: () => void }) {
               className="button account-google-primary"
               onClick={async () => { if (await confirmLeave()) { clear(); onGoogle(); } }}
             >
+              <GoogleMark />
               Continue with Google
             </button>
             <p className="auth-divider"><span>or</span></p>
