@@ -203,9 +203,15 @@ export function BrowsePage({
   const requestedSlug = selectedSlug || linkedSlug;
   const locations = detail && !branches.some((branch) => branch.slug === detail.slug) ? [...branches, detail] : branches;
   const active = detail ?? (requestedSlug ? locations.find((branch) => branch.slug === requestedSlug) : locations[0]);
-  const rooms = [...(detail?.roomTypes ?? [])].sort((a, b) =>
-    sort === "price" ? a.pricePerNight - b.pricePerNight : sort === "size" ? b.sizeM2 - a.sizeM2 : 0,
-  );
+  const rooms = [...(detail?.roomTypes ?? [])].sort((a, b) => {
+    const difference =
+      sort === "price"
+        ? a.pricePerNight - b.pricePerNight
+        : sort === "size"
+          ? b.sizeM2 - a.sizeM2
+          : 0;
+    return difference || a.name.localeCompare(b.name);
+  });
   const changed = draft.checkIn !== stay.checkIn || draft.checkOut !== stay.checkOut || draft.guests !== stay.guests || draft.rooms !== stay.rooms;
   // Mirrors the server rule roomsNeeded = max(rooms, ceil(guests / capacity)):
   // surface the range across room sizes before the guest picks a room type.
