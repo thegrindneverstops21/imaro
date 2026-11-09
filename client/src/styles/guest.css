@@ -55,6 +55,26 @@
 .guest-header .account-actions {
   gap: 16px;
 }
+@media (min-width: 1101px) {
+  .guest-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .guest-header nav {
+    justify-content: center;
+    white-space: nowrap;
+  }
+  .guest-header .account-actions {
+    justify-self: end;
+    margin-left: 0;
+  }
+}
+@media (min-width: 1440px) {
+  .guest-header {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+}
 .guest-header .user-link {
   max-width: 110px;
   overflow: hidden;
@@ -122,6 +142,8 @@
 }
 /* Photograph-led hero followed by a flat, clearly separated booking form. */
 .guest-browse .imaro-hero {
+  -webkit-user-select: none;
+  user-select: none;
   min-height: clamp(620px, 86svh, 900px);
   align-items: flex-end;
   margin-top: calc(-1 * var(--guest-header-height));
@@ -481,6 +503,18 @@
   gap: 14px;
   margin: 20px 0 16px;
   max-width: 420px;
+}
+.auth-google,
+.account-google-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.google-mark {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 .auth-form label {
   font-size: 14px;
@@ -1809,6 +1843,7 @@
   margin-bottom: 10px;
 }
 .modern-calendar-head strong {
+  white-space: nowrap;
   font-size: 15px;
   font-weight: 600;
   color: var(--ink);
@@ -1834,7 +1869,7 @@
 }
 .modern-calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 2px;
 }
 .modern-calendar-weekday {
@@ -1846,6 +1881,8 @@
   color: var(--muted);
 }
 .modern-calendar-day {
+  min-width: 0;
+  padding: 0;
   height: 34px;
   border: 0;
   border-radius: 9px;

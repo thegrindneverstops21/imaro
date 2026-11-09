@@ -2456,6 +2456,10 @@ html {
 .form-validation ul { margin: 0; padding-left: 1.2rem; }
 .form-validation button { color: inherit; text-align: left; text-decoration: underline; background: none; border: 0; padding: 0.25rem 0; font: inherit; cursor: pointer; }
 .form-validation button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.form-validation-modal h2 { margin: 0; }
+.form-validation-modal-intro { margin: 0; }
+.form-validation-modal-list { margin: 0; padding-left: 1.2rem; color: #852d25; }
+.form-validation-modal .button { min-width: 140px; }
 input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] { outline: 2px solid #a53b30; outline-offset: 2px; }
 .form-error { color: #852d25; overflow-wrap: anywhere; }
 
