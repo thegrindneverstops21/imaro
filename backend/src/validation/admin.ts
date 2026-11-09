@@ -57,15 +57,17 @@ export const branchPatch = branchInput.partial().extend({
 });
 export const branchCreateInput = branchInput.extend({
   images: z.array(z.object({
-    url: z.string().trim().url().max(2048).refine((value) => /^https?:\/\//i.test(value)),
-    alt: z.string().trim().min(1).max(300),
-  })).max(20).default([]),
-  amenities: z.array(z.string().trim().min(1).max(100)).max(50).default([]),
+    url: z.string().trim().url().max(ADMIN_FIELD_LIMITS.imageUrlMax).refine((value) => /^https?:\/\//i.test(value)),
+    alt: z.string().trim().min(1).max(ADMIN_FIELD_LIMITS.imageAltMax),
+  })).max(ADMIN_FIELD_LIMITS.imagesMax).default([]),
+  amenities: z.array(
+    z.string().trim().min(1).max(ADMIN_FIELD_LIMITS.amenityMax),
+  ).max(ADMIN_FIELD_LIMITS.amenitiesMax).default([]),
   policies: z.array(z.object({
     type: z.enum(["house_rules", "cancellation", "payment"]),
-    title: z.string().trim().min(1).max(160),
-    body: z.string().trim().min(1).max(5000),
-  })).max(20).default([]),
+    title: z.string().trim().min(1).max(ADMIN_FIELD_LIMITS.policyTitleMax),
+    body: z.string().trim().min(1).max(ADMIN_FIELD_LIMITS.policyBodyMax),
+  })).max(ADMIN_FIELD_LIMITS.policiesMax).default([]),
 });
 export type BranchCreateInput = z.infer<typeof branchCreateInput>;
 export const roomInput = z.object({
