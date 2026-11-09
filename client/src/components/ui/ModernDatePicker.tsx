@@ -117,16 +117,14 @@ export function ModernDatePicker({ label, value, onChange, min, className }: Mod
           setOpen((state) => {
             if (!state) {
               const rect = triggerRef.current?.getBoundingClientRect();
-              if (rect) setPos({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+              if (rect) {
+                const width = Math.min(320, window.innerWidth - 24);
+                const left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12));
+                setPos({ top: rect.bottom + 6, left, width });
+              }
             }
             return !state;
           });
-        }}
-        onKeyDown={(event) => {
-          if ((event.key === "Enter" || event.key === " ") && !open) {
-            event.preventDefault();
-            setOpen(true);
-          }
         }}
       >
         <span className={`modern-select-value${value ? "" : " is-placeholder"}`}>

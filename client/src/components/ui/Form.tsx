@@ -7,6 +7,13 @@ import {
   type ComponentProps,
   type SubmitEvent,
 } from "react";
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+} from "@heroui/react";
 
 type Field = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type Issue = { field: HTMLElement; text: string; id: string };
@@ -89,9 +96,17 @@ function fieldError(field: Field): string {
 }
 
 /** Shared custom validation for native and HeroUI controls; never shows browser bubbles. */
-export function Form({ children, onSubmit, ...props }: ComponentProps<"form">) {
+export function Form({
+  children,
+  onSubmit,
+  validationPresentation = "inline",
+  ...props
+}: ComponentProps<"form"> & {
+  validationPresentation?: "inline" | "modal";
+}) {
   const prefix = useId();
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [modalIssues, setModalIssues] = useState<Issue[]>([]);
   const previous = useRef<Issue[]>([]);
 
   function validate(form: HTMLFormElement) {
@@ -164,6 +179,7 @@ export function Form({ children, onSubmit, ...props }: ComponentProps<"form">) {
     }
     previous.current = found;
     setIssues(found);
+    if (!found.length) setModalIssues([]);
     return found;
   }
 
@@ -171,7 +187,8 @@ export function Form({ children, onSubmit, ...props }: ComponentProps<"form">) {
     const found = validate(event.currentTarget);
     if (found.length) {
       event.preventDefault();
-      found[0].field.focus();
+      if (validationPresentation === "modal") setModalIssues(found);
+      else found[0].field.focus();
       return;
     }
     onSubmit?.(event);
@@ -188,7 +205,7 @@ export function Form({ children, onSubmit, ...props }: ComponentProps<"form">) {
       }}
     >
       <FormIssues.Provider value={issues}>{children}</FormIssues.Provider>
-      {issues.length > 0 && (
+      {issues.length > 0 && validationPresentation === "inline" && (
         <div className="form-validation" role="alert">
           <p>Please check the following details:</p>
           <ul>
@@ -202,6 +219,41 @@ export function Form({ children, onSubmit, ...props }: ComponentProps<"form">) {
           </ul>
         </div>
       )}
+      <Modal
+        isOpen={modalIssues.length > 0}
+        onOpenChange={(open) => {
+          if (!open) setModalIssues([]);
+        }}
+        placement="center"
+        size="sm"
+        classNames={{ base: "form-validation-modal" }}
+      >
+        <ModalContent>
+          <ModalHeader>Please check your details</ModalHeader>
+          <ModalBody>
+            <p className="form-validation-modal-intro">
+              Please correct the following before continuing:
+            </p>
+            <ul className="form-validation-modal-list">
+              {modalIssues.map((issue) => (
+                <li key={issue.id}>{issue.text}</li>
+              ))}
+            </ul>
+          </ModalBody>
+          <ModalFooter>
+            <button
+              type="button"
+              className="button"
+              onClick={() => {
+                setModalIssues([]);
+                modalIssues[0]?.field.focus();
+              }}
+            >
+              Return to form
+            </button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </form>
   );
 }
