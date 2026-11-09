@@ -176,6 +176,40 @@ async function guardRoomChange(id: number, patch: RoomPatch, db: Queryable) {
     throw new AppError(HttpStatus.Conflict, ErrorMessage.RoomReserved);
 }
 
+interface RoomMove {
+  bookingId: number;
+  allocations: repo.Allocation[];
+  stay: repo.StayChange;
+}
+
+function assertCapacity(allocations: repo.Allocation[], guests: number) {
+  const capacity = allocations.reduce((sum, room) => sum + room.capacity, 0);
+  if (!allocations.length || guests > capacity)
+    throw new AppError(HttpStatus.BadRequest, ErrorMessage.CapacityExceeded);
+}
+
+// Finds a free room of the same type for each old allocation on the new dates.
+async function assignReplacementRooms(db: Queryable, move: RoomMove) {
+  const { bookingId, allocations, stay } = move;
+  for (const room of allocations) {
+    const ids = await bookings.findFreeRoomIds(db, { ...stay, ...room, limit: 1 });
+    if (!ids.length)
+      throw new AppError(HttpStatus.Conflict, ErrorMessage.NoReplacementRooms);
+    await bookings.insertBookingRooms(db, {
+      bookingId,
+      roomIds: ids,
+      pricePerNight: room.price,
+      checkIn: stay.checkIn,
+      checkOut: stay.checkOut,
+    });
+  }
+}
+
+function totalForStay(allocations: repo.Allocation[], stay: repo.StayChange) {
+  const nightly = allocations.reduce((sum, room) => sum + room.price, 0);
+  return round2(nightly * nightsBetween(stay.checkIn, stay.checkOut));
+}
+
 // Moves a booking to new dates: frees the old rooms, finds new free ones of the
 // same type, then recalculates the total for the new number of nights.
 async function reallocateBooking(
@@ -184,30 +218,10 @@ async function reallocateBooking(
   db: Queryable,
 ) {
   const allocations = await repo.findAllocations(booking.id, db);
-  const capacity = allocations.reduce((sum, room) => sum + room.capacity, 0);
-  if (!allocations.length || stay.guests > capacity)
-    throw new AppError(HttpStatus.BadRequest, ErrorMessage.CapacityExceeded);
+  assertCapacity(allocations, stay.guests);
   await repo.clearAllocations(booking.id, db);
-  for (const room of allocations) {
-    const ids = await bookings.findFreeRoomIds(db, {
-      ...stay,
-      ...room,
-      limit: 1,
-    });
-    if (!ids.length)
-      throw new AppError(HttpStatus.Conflict, ErrorMessage.NoReplacementRooms);
-    await bookings.insertBookingRooms(db, {
-      bookingId: booking.id,
-      roomIds: ids,
-      pricePerNight: room.price,
-      checkIn: stay.checkIn,
-      checkOut: stay.checkOut,
-    });
-  }
-  const total = round2(
-    allocations.reduce((sum, room) => sum + room.price, 0) *
-      nightsBetween(stay.checkIn, stay.checkOut),
-  );
+  await assignReplacementRooms(db, { bookingId: booking.id, allocations, stay });
+  const total = totalForStay(allocations, stay);
   await repo.updateBooking(booking.id, { ...stay, total }, db);
   return toBookingView(
     { ...booking, ...stay, totalAmount: total },

@@ -11,6 +11,7 @@ import {
   validNotification,
   type PayfastFields,
 } from "../domain/payfast";
+import { Environment } from "../constants/domain";
 import type { BookingAccess, BookingView } from "../domain/bookingTypes";
 import { AppError } from "../middleware/error";
 import * as bookings from "../repositories/bookingRepository";
@@ -27,6 +28,30 @@ function configured() {
     env.PAYFAST_RETURN_URL &&
     env.PAYFAST_CANCEL_URL
   );
+}
+
+function hasLocalCallbackUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol !== "https:" ||
+      url.hostname === "localhost" ||
+      url.hostname === "[::1]" ||
+      url.hostname === "127.0.0.1"
+    );
+  } catch {
+    return true;
+  }
+}
+
+function assertPublicCallbacks() {
+  if (
+    env.NODE_ENV === Environment.Development &&
+    [env.PAYFAST_NOTIFY_URL, env.PAYFAST_RETURN_URL, env.PAYFAST_CANCEL_URL].some(
+      (url) => url && hasLocalCallbackUrl(url),
+    )
+  )
+    throw new AppError(HttpStatus.ServiceUnavailable, ErrorMessage.PayFastPublicUrls);
 }
 
 function returnUrl(base: string, reference: string) {
@@ -62,6 +87,7 @@ export async function createPayment(reference: string, access: BookingAccess) {
     throw new AppError(HttpStatus.Conflict, ErrorMessage.HoldExpired);
   if (!configured())
     throw new AppError(HttpStatus.ServiceUnavailable, PAYFAST.notConfigured);
+  assertPublicCallbacks();
   const fields = checkoutFields(booking);
   fields.signature = signature(fields, env.PAYFAST_PASSPHRASE);
   return {

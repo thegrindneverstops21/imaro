@@ -52,8 +52,7 @@ const conflict = () =>
 const notFound = () =>
   new AppError(HttpStatus.NotFound, ErrorMessage.BookingNotFound);
 
-// Postgres refuses overlapping stays for the same room (the `no_double_booking`
-// constraint). That error means "someone else booked it first" -> 409.
+// Postgres refuses overlapping stays for the same room (the `no_double_booking` constraint). That error means "someone else booked it first" -> 409.
 function isExclusionViolation(error: unknown): boolean {
   const code =
     typeof error === "object" && error !== null
@@ -213,8 +212,7 @@ function toCreated(hold: Hold, roomsBooked: number): CreatedBooking {
   };
 }
 
-// Creates the booking in the "held" state: the rooms are blocked for 15 minutes
-// while the guest pays. Unpaid holds are cleaned up by sweepExpiredHolds.
+// Creates the booking in the "held" state: the rooms are blocked for 15 minutes while the guest pays. Unpaid holds are cleaned up by sweepExpiredHolds.
 async function placeHold(
   db: PoolClient,
   input: CreateBookingInput,
@@ -234,10 +232,6 @@ async function placeHold(
 }
 
 // ---------- Read ----------
-// NOTE: below, pure helpers like `toNewBooking`/`buildHold` do no I/O — they only
-// shape data — while functions taking `db` do the database work. Keeping the two
-// apart makes the logic much easier to follow and test.
-
 // A wrong reference and a wrong token look identical, so references cannot be probed.
 export async function requireAccessible(
   load: () => Promise<BookingRow | null>,
