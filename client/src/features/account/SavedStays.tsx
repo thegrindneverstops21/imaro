@@ -22,16 +22,18 @@ function SavedCard({ branch, disabled, onRemove }: CardProps) {
     <article className="panel">
       <h3>{displayBrand(branch.name)}</h3>
       <p>{branch.city}</p>
-      <Link to={`/rooms?branch=${slug}`}>Explore rooms</Link>{" "}
-      <Link to={`/hotel?branch=${slug}`}>Hotel information</Link>{" "}
-      <button
-        type="button"
-        className="text-button"
-        disabled={disabled}
-        onClick={() => onRemove(branch.slug)}
-      >
-        {REMOVE_SAVED}
-      </button>
+      <div className="account-card-actions">
+        <Link to={`/rooms?branch=${slug}`}>Explore rooms</Link>
+        <Link to={`/hotel?branch=${slug}`}>Hotel information</Link>
+        <button
+          type="button"
+          className="text-button"
+          disabled={disabled}
+          onClick={() => onRemove(branch.slug)}
+        >
+          {REMOVE_SAVED}
+        </button>
+      </div>
     </article>
   );
 }

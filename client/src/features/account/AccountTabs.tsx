@@ -17,10 +17,20 @@ export function AccountTabs({ user, saved = false }: Props) {
   return (
     <Tabs
       aria-label="Account sections"
+      className="account-tabs"
+      variant="underlined"
+      color="primary"
       selectedKey={tab}
       onSelectionChange={(keys) => {
         if (keys === "all") return;
         setTab(String(keys));
+      }}
+      classNames={{
+        tabList: "account-tab-list",
+        tab: "account-tab",
+        tabContent: "account-tab-label",
+        cursor: "account-tab-cursor",
+        panel: "account-tab-panel",
       }}
     >
       <Tab key={PROFILE} title="My profile">
