@@ -24,6 +24,7 @@ import {
   signInBody,
 } from "../validation/auth";
 import { oauthCallbackQuery } from "../validation/booking";
+import { sendPasswordResetEmail } from "../services/emailService";
 
 export const authRouter = Router();
 
@@ -48,6 +49,7 @@ authRouter.post("/login", async (req, res) => {
 authRouter.post("/password-reset/request", async (req, res) => {
   const { email } = passwordResetRequestBody.parse(req.body);
   const token = await requestPasswordReset(email);
+  if (token) await sendPasswordResetEmail(email, token);
   const data: { message: string; resetToken?: string } = {
     message: "If an account exists, password reset instructions are ready.",
   };
