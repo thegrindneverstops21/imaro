@@ -37,15 +37,25 @@ export function ProfileForm({ user }: { user: User }) {
         <input name="name" autoComplete="name" required maxLength={150} value={name} onChange={(event) => { setSaved(false); setName(event.target.value); }} />
       </label>
       <label>
-        Phone <small>Optional</small>
+        <span>
+          Phone <small>(optional)</small>
+        </span>
         <input name="phone" type="tel" autoComplete="tel" minLength={5} maxLength={40} value={phone} onChange={(event) => { setSaved(false); setPhone(event.target.value); }} />
       </label>
     </div>
     <div className="profile-email">
-      <span className="profile-field-label">Email</span>
-      <span className="profile-field-value">{user.email}</span>
+      <span className="profile-field-label" id="profile-email-label">Email</span>
+      <div
+        className="profile-email-value"
+        role="textbox"
+        aria-readonly="true"
+        aria-labelledby="profile-email-label"
+        tabIndex={0}
+      >
+        {user.email}
+      </div>
+      <p className="profile-email-note">Your email is your sign-in, so it stays as it is.</p>
     </div>
-    <p className="small-note">Your email is your sign-in, so it stays as it is.</p>
     <button className="button" disabled={busy}>{busy ? "Saving…" : "Save profile"}</button>
     {saved && <SuccessBanner>Profile saved.</SuccessBanner>}
     {notice && <p className="form-error" role="alert">{notice}</p>}
