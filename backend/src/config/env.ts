@@ -11,6 +11,9 @@ import {
 const DEFAULT_GOOGLE_REDIRECT_URI =
   "http://localhost:4000/api/v1/auth/google/callback";
 
+// Resend's shared test sender: it only delivers to your own Resend account email until you verify a domain.
+const DEFAULT_EMAIL_FROM = "Stillmere Hotel <onboarding@resend.dev>";
+
 const emailList = z
   .string()
   .default("")
@@ -26,7 +29,10 @@ const schema = z.object({
   PAYFAST_MERCHANT_ID: z.string().optional(),
   PAYFAST_MERCHANT_KEY: z.string().optional(),
   PAYFAST_PASSPHRASE: z.string().default(""),
-  PAYFAST_SANDBOX: z.enum(["true", "false"]).default("true").transform((value) => value === "true"),
+  PAYFAST_SANDBOX: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
   PAYFAST_NOTIFY_URL: z.string().url().optional(),
   PAYFAST_RETURN_URL: z.string().url().optional(),
   PAYFAST_CANCEL_URL: z.string().url().optional(),
@@ -42,6 +48,9 @@ const schema = z.object({
   // Required in every environment: there is deliberately no built-in fallback secret.
   SESSION_SECRET: z.string().min(MIN_SESSION_SECRET_LENGTH),
   ADMIN_EMAILS: emailList,
+  // Email is optional: without RESEND_API_KEY the API skips sending.
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().min(1).default(DEFAULT_EMAIL_FROM),
 });
 
 const parsed = schema.safeParse(process.env);
