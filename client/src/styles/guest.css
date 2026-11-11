@@ -1236,28 +1236,62 @@
 .notification-panel button {
   min-height: 44px;
 }
-.guest-checkout .account-tabs {
+.guest-checkout .account-tab-list {
+  gap: 28px;
+  padding: 0;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 16px;
-  gap: 24px;
 }
-.guest-checkout .account-tabs button {
+.guest-checkout .account-tab {
+  height: auto;
+  min-height: 48px;
+  padding: 12px 2px;
+}
+.guest-checkout .account-tab-label {
   font-size: 16px;
-  min-height: 44px;
-  color: var(--ink);
+  font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
+  color: var(--muted);
 }
-.guest-account .panel {
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  padding: 24px 0;
+.guest-checkout .account-tab[data-selected="true"] .account-tab-label {
+  color: var(--ink);
+  font-weight: 600;
 }
-.guest-account .account-list p,
+.guest-checkout .account-tab-panel {
+  padding: 28px 0 0;
+}
 .guest-account .panel p {
   font-size: 16px;
   line-height: 1.6;
+}
+.guest-account .account-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  margin-top: 12px;
+}
+.guest-account .profile-form .form-grid {
+  margin-block: 0;
+}
+.guest-account .profile-email {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  font-size: 16px;
+}
+.guest-account .profile-field-label {
+  color: var(--muted);
+}
+.guest-account .profile-field-value {
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+.guest-account .small-note {
+  margin: 0;
 }
 .guest-account .account-list a {
   display: inline-flex;
